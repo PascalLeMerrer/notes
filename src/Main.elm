@@ -63,6 +63,13 @@ init _ =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoteEditorMsg NoteEditor.UserClickedBackButton ->
+            ( model
+                |> withSelectedNote Nothing
+                |> withNoteEditor NoteEditor.init
+            , Cmd.none
+            )
+
         NoteEditorMsg noteEditorMsg ->
             let
                 ( updatedNoteEditorModel, cmd ) =

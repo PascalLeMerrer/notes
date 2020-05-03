@@ -36,7 +36,7 @@ view model =
 viewNote : Note -> Html Msg
 viewNote note =
     div
-        [ class "card"
+        [ class "clickable card"
         , onClick (UserClickedNote note)
         ]
         [ viewNoteTitle note

@@ -1,5 +1,6 @@
 module Pages.NoteEditor exposing (Model, Msg(..), init, update, view, viewNoteContent, viewNoteTitle)
 
+import Components.BackButton as BackButton
 import Data.Note as Note exposing (Content(..), Note)
 import Html.Styled exposing (Html, div, h2, input, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, type_, value)
@@ -14,7 +15,8 @@ type alias Model =
 
 
 type Msg
-    = UserClickedNote
+    = UserClickedBackButton
+    | UserClickedNote
     | UserSelectedNote Note
 
 
@@ -29,6 +31,9 @@ init =
 update : Msg -> Model -> ( Model, Cmd msg )
 update msg model =
     case msg of
+        UserClickedBackButton ->
+            ( model, Cmd.none )
+
         UserClickedNote ->
             ( { model | isEditionActive = True }, Cmd.none )
 
@@ -45,15 +50,23 @@ update msg model =
 -}
 view : Model -> Html Msg
 view model =
-    div [ class "selected-note vertical-container fill-height" ]
-        [ viewNoteTitle model
+    div [ class "clickable selected-note vertical-container fill-height" ]
+        [ viewHeader model
         , viewNoteContent model
+        ]
+
+
+viewHeader : Model -> Html Msg
+viewHeader model =
+    div [ class "header" ]
+        [ BackButton.view UserClickedBackButton
+        , viewNoteTitle model
         ]
 
 
 viewNoteTitle : Model -> Html Msg
 viewNoteTitle model =
-    h2 [] [ text model.title ]
+    h2 [ class "note-title" ] [ text model.title ]
 
 
 viewNoteContent : Model -> Html Msg

@@ -1,7 +1,7 @@
 module Components.Stylesheet exposing (all)
 
 import Components.Colors exposing (darkerGrey, red)
-import Css exposing (Style, absolute, alignItems, auto, border3, bottom, column, cursor, displayFlex, flex, flexBasis, flexDirection, flexGrow, flexShrink, flexStart, fontFamilies, height, justifyContent, margin, num, padding, pct, pointer, position, px, relative, right, solid, stretch, transform, translate, translate2, width)
+import Css exposing (Style, absolute, alignItems, auto, border3, bottom, center, column, cursor, displayFlex, flex, flexBasis, flexDirection, flexGrow, flexShrink, flexStart, fontFamilies, height, justifyContent, margin, num, padding, paddingLeft, paddingRight, pct, pointer, position, px, relative, right, row, solid, stretch, transform, translate, translate2, width)
 import Css.Global exposing (Snippet, class, global)
 import Html.Styled
 
@@ -19,7 +19,6 @@ classes =
         ]
     , class "card"
         [ border3 (px 1) solid darkerGrey
-        , cursor pointer
         , margin (px 5)
         , padding (px 5)
         ]
@@ -28,6 +27,11 @@ classes =
         ]
     , class "fill-height"
         [ flex (num 1)
+        ]
+    , class "header"
+        [ displayFlex
+        , flexDirection row
+        , alignItems center
         ]
     , class "vertical-container"
         [ displayFlex
@@ -43,7 +47,13 @@ classes =
         , transform (translate2 (pct -50) (pct -100))
         ]
     , class "selected-note"
+        [ padding (px 5)
+        ]
+    , class "clickable"
         [ cursor pointer
-        , padding (px 5)
+        ]
+    , class "note-title"
+        [ paddingLeft (px 10)
+        , paddingRight (px 10)
         ]
     ]
