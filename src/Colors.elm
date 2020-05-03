@@ -13,6 +13,11 @@ darkerGrey =
     hex "666"
 
 
+red : Color
+red =
+    hex "F00"
+
+
 darkGrey : Color
 darkGrey =
     hex "888"

@@ -105,7 +105,7 @@ viewTitle model =
 viewBody : Model -> List (Html.Html Msg)
 viewBody model =
     [ toUnstyled <|
-        div [ class "body" ]
+        div [ class "body vertical-container fill-height" ]
             [ Stylesheet.all
             , case model.selectedNote of
                 Just _ ->
@@ -119,7 +119,7 @@ viewBody model =
 
 viewMain : Model -> Html Msg
 viewMain model =
-    div []
+    div [ class "vertical-container fill-height" ]
         [ viewTitle model
         , Html.Styled.map NoteListMsg (NoteList.view model.noteListModel)
         , PlusButton.view

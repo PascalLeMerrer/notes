@@ -29,7 +29,7 @@ update msg model =
 
 
 view model =
-    div [] <|
+    div [ class "fill-height" ] <|
         List.map viewNote model.notes
 
 
