@@ -1,7 +1,7 @@
 module Components.Stylesheet exposing (all)
 
 import Components.Colors exposing (darkerGrey, red)
-import Css exposing (Style, absolute, alignItems, auto, border3, bottom, center, column, cursor, displayFlex, flex, flexBasis, flexDirection, flexGrow, flexShrink, flexStart, fontFamilies, height, justifyContent, margin, num, padding, paddingLeft, paddingRight, pct, pointer, position, px, relative, right, row, solid, stretch, transform, translate, translate2, width)
+import Css exposing (Style, absolute, alignItems, auto, border3, borderBottom3, bottom, center, column, cursor, displayFlex, flex, flexBasis, flexDirection, flexGrow, flexShrink, flexStart, fontFamilies, height, justifyContent, margin, marginBottom, num, padding, paddingLeft, paddingRight, pct, pointer, position, px, relative, right, row, solid, stretch, transform, translate, translate2, width)
 import Css.Global exposing (Snippet, class, global)
 import Html.Styled
 
@@ -32,6 +32,8 @@ classes =
         [ displayFlex
         , flexDirection row
         , alignItems center
+        , borderBottom3 (px 1) solid darkerGrey
+        , marginBottom (px 10)
         ]
     , class "vertical-container"
         [ displayFlex

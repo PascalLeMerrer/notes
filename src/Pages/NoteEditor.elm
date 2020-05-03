@@ -16,7 +16,7 @@ type alias Model =
 
 type Msg
     = UserClickedBackButton
-    | UserClickedNote
+    | UserClickedNoteContent
     | UserSelectedNote Note
 
 
@@ -34,7 +34,7 @@ update msg model =
         UserClickedBackButton ->
             ( model, Cmd.none )
 
-        UserClickedNote ->
+        UserClickedNoteContent ->
             ( { model | isEditionActive = True }, Cmd.none )
 
         UserSelectedNote note ->
@@ -76,18 +76,10 @@ viewNoteContent model =
             viewItems items
 
         Note.Text text ->
-            if model.isEditionActive then
-                viewEditableText text
-
-            else
-                viewReadOnlyText text
+            viewContent model text
 
         Empty ->
-            noContent
-
-
-noContent =
-    text ""
+            viewContent model ""
 
 
 viewItems : List Note.Item -> Html Msg
@@ -101,6 +93,15 @@ viewItem item =
         [ input [ type_ "checkbox", checked item.checked ] []
         , text item.text
         ]
+
+
+viewContent : Model -> String -> Html Msg
+viewContent model text =
+    if model.isEditionActive then
+        viewEditableText text
+
+    else
+        viewReadOnlyText text
 
 
 viewEditableText : String -> Html Msg
@@ -118,6 +119,6 @@ viewReadOnlyText : String -> Html Msg
 viewReadOnlyText noteContent =
     div
         [ class "vertical-container fill-height"
-        , onClick UserClickedNote
+        , onClick UserClickedNoteContent
         ]
         [ text noteContent ]

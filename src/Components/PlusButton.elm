@@ -7,12 +7,13 @@ import TypedSvg as Svg
 import TypedSvg.Attributes exposing (fill, transform, viewBox)
 import TypedSvg.Attributes.InPx exposing (cx, cy, height, r, rx, width, x, y)
 import TypedSvg.Core exposing (Svg)
+import TypedSvg.Events exposing (onClick)
 import TypedSvg.Types exposing (Paint(..), Transform(..))
 
 
-view : Html msg
-view =
-    div [ class "plus-button-container" ]
+view : msg -> Html msg
+view message =
+    div [ class "plus-button-container clickable" ]
         [ fromUnstyled <|
             Svg.svg
                 [ width buttonDiameter
@@ -24,6 +25,7 @@ view =
                     , cy buttonRadius
                     , r buttonRadius
                     , fill <| Paint green
+                    , onClick message
                     ]
                     []
                 , viewRectangle [ Rotate 90 buttonRadius buttonRadius ] -- rotation in degrees + coordinates of the rotation center

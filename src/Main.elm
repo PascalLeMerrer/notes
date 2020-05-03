@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Components.PlusButton as PlusButton
 import Components.Stylesheet as Stylesheet
-import Data.Note exposing (Note)
+import Data.Note as Note exposing (Note)
 import Fixtures exposing (allNotes)
 import Html
 import Html.Styled exposing (Html, div, h1, text, toUnstyled)
@@ -32,6 +32,7 @@ type alias Model =
 type Msg
     = NoteEditorMsg NoteEditor.Msg
     | NoteListMsg NoteList.Msg
+    | UserClickedPlusButton
 
 
 withNoteList : NoteList.Model -> Model -> Model
@@ -78,16 +79,7 @@ update msg model =
             ( model |> withNoteEditor updatedNoteEditorModel, Cmd.map NoteEditorMsg cmd )
 
         NoteListMsg (NoteList.UserClickedNote note) ->
-            let
-                ( updatedNoteEditorModel, cmd ) =
-                    NoteEditor.update (NoteEditor.UserSelectedNote note) model.noteEditorModel
-            in
-            ( model
-                |> withSelectedNote
-                    (Just note)
-                |> withNoteEditor updatedNoteEditorModel
-            , Cmd.map NoteEditorMsg cmd
-            )
+            selectNote model note
 
         NoteListMsg noteListMsg ->
             let
@@ -95,6 +87,23 @@ update msg model =
                     NoteList.update noteListMsg model.noteListModel
             in
             ( model |> withNoteList updatedNoteListModel, Cmd.map NoteListMsg cmd )
+
+        UserClickedPlusButton ->
+            selectNote model Note.empty
+
+
+selectNote : Model -> Note -> ( Model, Cmd Msg )
+selectNote model note =
+    let
+        ( updatedNoteEditorModel, cmd ) =
+            NoteEditor.update (NoteEditor.UserSelectedNote note) model.noteEditorModel
+    in
+    ( model
+        |> withSelectedNote
+            (Just note)
+        |> withNoteEditor updatedNoteEditorModel
+    , Cmd.map NoteEditorMsg cmd
+    )
 
 
 view : Model -> Document Msg
@@ -129,5 +138,5 @@ viewMain model =
     div [ class "vertical-container fill-height" ]
         [ viewTitle model
         , Html.Styled.map NoteListMsg (NoteList.view model.noteListModel)
-        , PlusButton.view
+        , PlusButton.view UserClickedPlusButton
         ]
