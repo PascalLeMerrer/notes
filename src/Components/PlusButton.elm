@@ -1,4 +1,4 @@
-module PlusButton exposing (view)
+module Components.PlusButton exposing (view)
 
 import Color exposing (black, green, white)
 import Html.Styled exposing (Html, div, fromUnstyled)

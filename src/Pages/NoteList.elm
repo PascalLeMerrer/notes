@@ -1,10 +1,10 @@
-module NoteList exposing (..)
+module Pages.NoteList exposing (..)
 
+import Data.Note as Note exposing (Content(..), Note)
 import Fixtures exposing (allNotes)
 import Html.Styled exposing (Html, div, h2, input, text)
 import Html.Styled.Attributes exposing (checked, class, type_)
 import Html.Styled.Events exposing (onClick)
-import Note exposing (Content(..), Note)
 
 
 type alias Model =

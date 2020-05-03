@@ -1,4 +1,4 @@
-module Colors exposing (..)
+module Components.Colors exposing (..)
 
 import Css exposing (Color, hex)
 

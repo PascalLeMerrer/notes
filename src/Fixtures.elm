@@ -1,6 +1,6 @@
 module Fixtures exposing (..)
 
-import Note exposing (..)
+import Data.Note exposing (..)
 
 
 allNotes =

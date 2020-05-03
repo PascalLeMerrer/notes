@@ -1,4 +1,4 @@
-module Note exposing (..)
+module Data.Note exposing (..)
 
 
 type alias Note =

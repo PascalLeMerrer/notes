@@ -1,15 +1,15 @@
 module Main exposing (main)
 
 import Browser exposing (Document)
+import Components.PlusButton as PlusButton
+import Components.Stylesheet as Stylesheet
+import Data.Note exposing (Note)
 import Fixtures exposing (allNotes)
 import Html
 import Html.Styled exposing (Html, div, h1, text, toUnstyled)
 import Html.Styled.Attributes exposing (class)
-import Note exposing (Note)
-import NoteEditor
-import NoteList
-import PlusButton
-import Stylesheet
+import Pages.NoteEditor as NoteEditor
+import Pages.NoteList as NoteList
 
 
 main =

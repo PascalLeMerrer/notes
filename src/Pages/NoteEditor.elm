@@ -1,9 +1,9 @@
-module NoteEditor exposing (Model, Msg(..), init, update, view, viewNoteContent, viewNoteTitle)
+module Pages.NoteEditor exposing (Model, Msg(..), init, update, view, viewNoteContent, viewNoteTitle)
 
+import Data.Note as Note exposing (Content(..), Note)
 import Html.Styled exposing (Html, div, h2, input, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, type_, value)
 import Html.Styled.Events exposing (onClick)
-import Note exposing (Content(..), Note)
 
 
 type alias Model =

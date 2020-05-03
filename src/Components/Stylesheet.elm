@@ -1,6 +1,6 @@
-module Stylesheet exposing (all)
+module Components.Stylesheet exposing (all)
 
-import Colors exposing (darkerGrey, red)
+import Components.Colors exposing (darkerGrey, red)
 import Css exposing (Style, absolute, alignItems, auto, border3, bottom, column, cursor, displayFlex, flex, flexBasis, flexDirection, flexGrow, flexShrink, flexStart, fontFamilies, height, justifyContent, margin, num, padding, pct, pointer, position, px, relative, right, solid, stretch, transform, translate, translate2, width)
 import Css.Global exposing (Snippet, class, global)
 import Html.Styled
