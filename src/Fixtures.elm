@@ -8,7 +8,8 @@ allNotes =
 
 
 todoNote1 =
-    { title = "Todo Note 1"
+    { id = "todo note 1"
+    , title = "Todo Note 1"
     , content = TodoList [ doneItem, notDoneItem ]
     }
 
@@ -26,6 +27,7 @@ notDoneItem =
 
 
 commonNote =
-    { title = "A simple note"
-    , content = Text "The note content"
+    { id = "basic Note 1"
+    , title = "A simple note"
+    , content = Text "The note content after changing base URL"
     }

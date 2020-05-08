@@ -6,10 +6,13 @@ import Components.Stylesheet as Stylesheet
 import Data.Note as Note exposing (Note)
 import Fixtures exposing (allNotes)
 import Html
-import Html.Styled exposing (Html, div, h1, text, toUnstyled)
+import Html.Styled exposing (Html, div, fromUnstyled, h1, text, toUnstyled)
 import Html.Styled.Attributes exposing (class)
-import Pages.NoteEditor as NoteEditor
+import Http.Utils exposing (errorToString)
+import MessageToast exposing (MessageToast)
+import Pages.NoteEditor as NoteEditor exposing (Msg(..))
 import Pages.NoteList as NoteList
+import RemoteData exposing (RemoteData(..))
 
 
 main =
@@ -17,22 +20,28 @@ main =
         { init = init
         , update = update
         , view = view
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         }
-
-
-type alias Model =
-    { noteEditorModel : NoteEditor.Model
-    , noteListModel : NoteList.Model
-    , notes : List Note
-    , selectedNote : Maybe Note
-    }
 
 
 type Msg
     = NoteEditorMsg NoteEditor.Msg
     | NoteListMsg NoteList.Msg
     | UserClickedPlusButton
+    | UpdatedMessageToast (MessageToast Msg)
+
+
+
+-- MODEL --
+
+
+type alias Model =
+    { messageToast : MessageToast Msg
+    , noteEditorModel : NoteEditor.Model
+    , noteListModel : NoteList.Model
+    , notes : List Note
+    , selectedNote : Maybe Note
+    }
 
 
 withNoteList : NoteList.Model -> Model -> Model
@@ -52,7 +61,8 @@ withSelectedNote maybeNote model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { noteEditorModel = NoteEditor.init
+    ( { messageToast = MessageToast.init UpdatedMessageToast
+      , noteEditorModel = NoteEditor.init
       , noteListModel = NoteList.init
       , notes = allNotes
       , selectedNote = Nothing
@@ -61,10 +71,14 @@ init _ =
     )
 
 
+
+-- UPDATE --
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoteEditorMsg NoteEditor.UserClickedBackButton ->
+        NoteEditorMsg (NoteCreated (Success note)) ->
             ( model
                 |> withSelectedNote Nothing
                 |> withNoteEditor NoteEditor.init
@@ -91,6 +105,9 @@ update msg model =
         UserClickedPlusButton ->
             selectNote model Note.empty
 
+        UpdatedMessageToast updatedMessageToast ->
+            ( { model | messageToast = updatedMessageToast }, Cmd.none )
+
 
 selectNote : Model -> Note -> ( Model, Cmd Msg )
 selectNote model note =
@@ -104,6 +121,10 @@ selectNote model note =
         |> withNoteEditor updatedNoteEditorModel
     , Cmd.map NoteEditorMsg cmd
     )
+
+
+
+-- VIEW --
 
 
 view : Model -> Document Msg
@@ -138,5 +159,19 @@ viewMain model =
     div [ class "vertical-container fill-height" ]
         [ viewTitle model
         , Html.Styled.map NoteListMsg (NoteList.view model.noteListModel)
+        , fromUnstyled <| MessageToast.view model.messageToast
         , PlusButton.view UserClickedPlusButton
+        ]
+
+
+
+-- SUBSCRIPTIONS --
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ -- MessageToast provides a subscription to close automatically
+          MessageToast.subscriptions model.messageToast
+        , NoteEditor.subscriptions model.noteEditorModel |> Sub.map NoteEditorMsg
         ]

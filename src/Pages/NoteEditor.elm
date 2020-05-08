@@ -1,22 +1,34 @@
-module Pages.NoteEditor exposing (Model, Msg(..), init, update, view, viewNoteContent, viewNoteTitle)
+module Pages.NoteEditor exposing (Model, Msg(..), init, subscriptions, update, view, viewContent)
 
 import Components.BackButton as BackButton
 import Data.Note as Note exposing (Content(..), Note)
-import Html.Styled exposing (Html, div, h2, input, text, textarea)
+import Html.Attributes
+import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, type_, value)
-import Html.Styled.Events exposing (onClick)
+import Html.Styled.Events exposing (onClick, onInput)
+import Http.Utils exposing (errorToString)
+import MessageToast exposing (MessageToast)
+import RemoteData exposing (RemoteData(..), WebData)
+import Requests.Endpoint exposing (createNote)
 
 
 type alias Model =
     { title : String
     , content : Content
-    , isEditionActive : Bool
+    , isEditingContent : Bool
+    , isEditingTitle : Bool
+    , messageToast : MessageToast Msg
     }
 
 
 type Msg
-    = UserClickedBackButton
+    = NoteCreated (WebData Note)
+    | UpdatedMessageToast (MessageToast Msg)
+    | UserClickedBackButton
     | UserClickedNoteContent
+    | UserClickedNoteTitle
+    | UserChangedContent String
+    | UserChangedTitle String
     | UserSelectedNote Note
 
 
@@ -24,18 +36,38 @@ init : Model
 init =
     { title = ""
     , content = Empty
-    , isEditionActive = False
+    , isEditingContent = False
+    , isEditingTitle = False
+    , messageToast = MessageToast.init UpdatedMessageToast
     }
 
 
-update : Msg -> Model -> ( Model, Cmd msg )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        UserChangedContent string ->
+            if String.trim string == "" then
+                ( { model | content = Empty }, Cmd.none )
+
+            else
+                ( { model | content = Text string }, Cmd.none )
+
+        UserChangedTitle string ->
+            ( { model | title = string }, Cmd.none )
+
         UserClickedBackButton ->
-            ( model, Cmd.none )
+            -- TODO test if id is defined and then update if the note was modified
+            let
+                newNote =
+                    { id = ""
+                    , content = model.content
+                    , title = model.title
+                    }
+            in
+            ( model, createNote newNote NoteCreated )
 
         UserClickedNoteContent ->
-            ( { model | isEditionActive = True }, Cmd.none )
+            ( { model | isEditingContent = True }, Cmd.none )
 
         UserSelectedNote note ->
             ( { model
@@ -45,6 +77,28 @@ update msg model =
             , Cmd.none
             )
 
+        NoteCreated (Failure err) ->
+            let
+                toast =
+                    model.messageToast
+                        |> MessageToast.danger
+                        |> MessageToast.withMessage (Debug.log "erreur " <| errorToString err)
+            in
+            ( { model | messageToast = toast }, Cmd.none )
+
+        NoteCreated webdata ->
+            let
+                _ =
+                    Debug.log "NoteCreated webdata"
+            in
+            ( model, Cmd.none )
+
+        UpdatedMessageToast updatedMessageToast ->
+            ( { model | messageToast = updatedMessageToast }, Cmd.none )
+
+        UserClickedNoteTitle ->
+            ( { model | isEditingTitle = True }, Cmd.none )
+
 
 {-| displays a note in full screen
 -}
@@ -52,7 +106,11 @@ view : Model -> Html Msg
 view model =
     div [ class "clickable selected-note vertical-container fill-height" ]
         [ viewHeader model
-        , viewNoteContent model
+        , viewContent model
+        , model.messageToast
+            |> MessageToast.overwriteContainerAttributes [ Html.Attributes.class "message-toast-container" ]
+            |> MessageToast.view
+            |> fromUnstyled
         ]
 
 
@@ -60,26 +118,60 @@ viewHeader : Model -> Html Msg
 viewHeader model =
     div [ class "header" ]
         [ BackButton.view UserClickedBackButton
-        , viewNoteTitle model
+        , viewTitle model
         ]
 
 
-viewNoteTitle : Model -> Html Msg
-viewNoteTitle model =
-    h2 [ class "note-title" ] [ text model.title ]
+viewTitle : Model -> Html Msg
+viewTitle model =
+    if model.isEditingTitle then
+        viewEditableTitle model.title
+
+    else if String.isEmpty model.title then
+        viewTitlePlaceholder
+
+    else
+        viewReadOnlyTitle model.title
 
 
-viewNoteContent : Model -> Html Msg
-viewNoteContent model =
+viewEditableTitle : String -> Html Msg
+viewEditableTitle title =
+    input
+        [ value title
+        , onInput UserChangedTitle
+        ]
+        []
+
+
+viewReadOnlyTitle : String -> Html Msg
+viewReadOnlyTitle title =
+    h2
+        [ class "note-title"
+        , onClick UserClickedNoteTitle
+        ]
+        [ text title ]
+
+
+viewTitlePlaceholder : Html Msg
+viewTitlePlaceholder =
+    h2
+        [ class "note-title placeholder"
+        , onClick UserClickedNoteTitle
+        ]
+        [ text "Titre" ]
+
+
+viewContent : Model -> Html Msg
+viewContent model =
     case model.content of
         Note.TodoList items ->
             viewItems items
 
         Note.Text text ->
-            viewContent model text
+            viewText model text
 
         Empty ->
-            viewContent model ""
+            viewText model ""
 
 
 viewItems : List Note.Item -> Html Msg
@@ -95,10 +187,13 @@ viewItem item =
         ]
 
 
-viewContent : Model -> String -> Html Msg
-viewContent model text =
-    if model.isEditionActive then
+viewText : Model -> String -> Html Msg
+viewText model text =
+    if model.isEditingContent then
         viewEditableText text
+
+    else if String.isEmpty text then
+        viewTextPlaceholder
 
     else
         viewReadOnlyText text
@@ -110,6 +205,7 @@ viewEditableText noteContent =
         [ textarea
             [ value noteContent
             , class "fill-height"
+            , onInput UserChangedContent
             ]
             []
         ]
@@ -122,3 +218,24 @@ viewReadOnlyText noteContent =
         , onClick UserClickedNoteContent
         ]
         [ text noteContent ]
+
+
+viewTextPlaceholder : Html Msg
+viewTextPlaceholder =
+    div
+        [ class "vertical-container fill-height placeholder"
+        , onClick UserClickedNoteContent
+        ]
+        [ text "Texte" ]
+
+
+
+-- SUBSCRIPTIONS --
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ -- MessageToast provides a subscription to close automatically
+          MessageToast.subscriptions model.messageToast
+        ]
