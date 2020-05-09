@@ -2,35 +2,88 @@ module Pages.NoteList exposing (..)
 
 import Data.Note as Note exposing (Content(..), Note)
 import Fixtures exposing (allNotes)
-import Html.Styled exposing (Html, div, h2, input, text)
+import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text)
 import Html.Styled.Attributes exposing (checked, class, type_)
 import Html.Styled.Events exposing (onClick)
-
-
-type alias Model =
-    { notes : List Note
-    }
+import Http.Utils exposing (errorToString)
+import MessageToast exposing (MessageToast)
+import RemoteData exposing (RemoteData(..), WebData)
+import Requests.Endpoint exposing (getAllNotes)
 
 
 type Msg
-    = UserClickedNote Note
-    | NoOp
+    = ServerReturnedNoteList (WebData (List Note))
+    | UserClickedNote Note
+    | UserCreatedNote Note
+    | MessageToastChanged (MessageToast Msg)
 
 
-init : Model
-init =
-    { notes = allNotes
+
+-- MODEL
+
+
+type alias Model =
+    { messageToast : MessageToast Msg
+    , notes : List Note
     }
+
+
+init : ( Model, Cmd Msg )
+init =
+    ( { messageToast = MessageToast.init MessageToastChanged
+      , notes = allNotes
+      }
+    , getAllNotes ServerReturnedNoteList
+    )
+
+
+
+-- UPDATE
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        ServerReturnedNoteList (Success notes) ->
+            ( { model | notes = notes }
+            , Cmd.none
+            )
+
+        ServerReturnedNoteList (Failure err) ->
+            let
+                toast =
+                    model.messageToast
+                        |> MessageToast.danger
+                        |> MessageToast.withMessage (errorToString err)
+            in
+            ( { model | messageToast = toast }, Cmd.none )
+
+        ServerReturnedNoteList _ ->
+            -- TODO handle other cases
+            ( model, Cmd.none )
+
+        UserClickedNote note ->
+            ( model, Cmd.none )
+
+        UserCreatedNote note ->
+            ( { model | notes = note :: model.notes }
+            , Cmd.none
+            )
+
+        MessageToastChanged updatedMessageToast ->
+            ( { model | messageToast = updatedMessageToast }, Cmd.none )
+
+
+
+-- VIEW
 
 
 view model =
     div [ class "fill-height" ] <|
-        List.map viewNote model.notes
+        (List.map viewNote model.notes
+            ++ [ fromUnstyled <| MessageToast.view model.messageToast
+               ]
+        )
 
 
 viewNote : Note -> Html Msg
@@ -82,3 +135,15 @@ viewItem item =
 viewNoteText : String -> Html msg
 viewNoteText noteContent =
     div [] [ text noteContent ]
+
+
+
+-- SUBSCRIPTIONS --
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ -- MessageToast provides a subscription to close automatically
+          MessageToast.subscriptions model.messageToast
+        ]

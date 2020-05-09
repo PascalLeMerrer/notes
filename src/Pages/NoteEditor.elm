@@ -22,8 +22,8 @@ type alias Model =
 
 
 type Msg
-    = NoteCreated (WebData Note)
-    | UpdatedMessageToast (MessageToast Msg)
+    = ServerSavedNewNote (WebData Note)
+    | MessageToastChanged (MessageToast Msg)
     | UserClickedBackButton
     | UserClickedNoteContent
     | UserClickedNoteTitle
@@ -38,7 +38,7 @@ init =
     , content = Empty
     , isEditingContent = False
     , isEditingTitle = False
-    , messageToast = MessageToast.init UpdatedMessageToast
+    , messageToast = MessageToast.init MessageToastChanged
     }
 
 
@@ -64,7 +64,7 @@ update msg model =
                     , title = model.title
                     }
             in
-            ( model, createNote newNote NoteCreated )
+            ( model, createNote newNote ServerSavedNewNote )
 
         UserClickedNoteContent ->
             ( { model | isEditingContent = True }, Cmd.none )
@@ -77,23 +77,19 @@ update msg model =
             , Cmd.none
             )
 
-        NoteCreated (Failure err) ->
+        ServerSavedNewNote (Failure err) ->
             let
                 toast =
                     model.messageToast
                         |> MessageToast.danger
-                        |> MessageToast.withMessage (Debug.log "erreur " <| errorToString err)
+                        |> MessageToast.withMessage (errorToString err)
             in
             ( { model | messageToast = toast }, Cmd.none )
 
-        NoteCreated webdata ->
-            let
-                _ =
-                    Debug.log "NoteCreated webdata"
-            in
+        ServerSavedNewNote webdata ->
             ( model, Cmd.none )
 
-        UpdatedMessageToast updatedMessageToast ->
+        MessageToastChanged updatedMessageToast ->
             ( { model | messageToast = updatedMessageToast }, Cmd.none )
 
         UserClickedNoteTitle ->

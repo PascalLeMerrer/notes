@@ -8,10 +8,8 @@ import Fixtures exposing (allNotes)
 import Html
 import Html.Styled exposing (Html, div, fromUnstyled, h1, text, toUnstyled)
 import Html.Styled.Attributes exposing (class)
-import Http.Utils exposing (errorToString)
-import MessageToast exposing (MessageToast)
 import Pages.NoteEditor as NoteEditor exposing (Msg(..))
-import Pages.NoteList as NoteList
+import Pages.NoteList as NoteList exposing (Msg(..))
 import RemoteData exposing (RemoteData(..))
 
 
@@ -28,7 +26,6 @@ type Msg
     = NoteEditorMsg NoteEditor.Msg
     | NoteListMsg NoteList.Msg
     | UserClickedPlusButton
-    | UpdatedMessageToast (MessageToast Msg)
 
 
 
@@ -36,8 +33,7 @@ type Msg
 
 
 type alias Model =
-    { messageToast : MessageToast Msg
-    , noteEditorModel : NoteEditor.Model
+    { noteEditorModel : NoteEditor.Model
     , noteListModel : NoteList.Model
     , notes : List Note
     , selectedNote : Maybe Note
@@ -61,13 +57,16 @@ withSelectedNote maybeNote model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { messageToast = MessageToast.init UpdatedMessageToast
-      , noteEditorModel = NoteEditor.init
-      , noteListModel = NoteList.init
+    let
+        ( noteListModel, noteListCmd ) =
+            NoteList.init
+    in
+    ( { noteEditorModel = NoteEditor.init
+      , noteListModel = noteListModel
       , notes = allNotes
       , selectedNote = Nothing
       }
-    , Cmd.none
+    , Cmd.map NoteListMsg noteListCmd
     )
 
 
@@ -78,11 +77,16 @@ init _ =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoteEditorMsg (NoteCreated (Success note)) ->
+        NoteEditorMsg (ServerSavedNewNote (Success note)) ->
+            let
+                ( updatedNoteListModel, cmd ) =
+                    NoteList.update (UserCreatedNote note) model.noteListModel
+            in
             ( model
+                |> withNoteList updatedNoteListModel
                 |> withSelectedNote Nothing
                 |> withNoteEditor NoteEditor.init
-            , Cmd.none
+            , Cmd.map NoteListMsg cmd
             )
 
         NoteEditorMsg noteEditorMsg ->
@@ -104,9 +108,6 @@ update msg model =
 
         UserClickedPlusButton ->
             selectNote model Note.empty
-
-        UpdatedMessageToast updatedMessageToast ->
-            ( { model | messageToast = updatedMessageToast }, Cmd.none )
 
 
 selectNote : Model -> Note -> ( Model, Cmd Msg )
@@ -159,7 +160,6 @@ viewMain model =
     div [ class "vertical-container fill-height" ]
         [ viewTitle model
         , Html.Styled.map NoteListMsg (NoteList.view model.noteListModel)
-        , fromUnstyled <| MessageToast.view model.messageToast
         , PlusButton.view UserClickedPlusButton
         ]
 
@@ -171,7 +171,6 @@ viewMain model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ -- MessageToast provides a subscription to close automatically
-          MessageToast.subscriptions model.messageToast
-        , NoteEditor.subscriptions model.noteEditorModel |> Sub.map NoteEditorMsg
+        [ NoteEditor.subscriptions model.noteEditorModel |> Sub.map NoteEditorMsg
+        , NoteList.subscriptions model.noteListModel |> Sub.map NoteListMsg
         ]
