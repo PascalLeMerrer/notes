@@ -1,7 +1,7 @@
-module Data.Note exposing (Content(..), Item, Note, empty, encodeNote, noteDecoder, noteListDecoder)
+module Data.Note exposing (Content(..), Item, Note, decoder, empty, encoder, listDecoder)
 
-import Json.Decode exposing (Decoder)
-import Json.Decode.Pipeline exposing (required)
+import Json.Decode as Decode exposing (Decoder, fail, oneOf, succeed)
+import Json.Decode.Pipeline exposing (optional, required, resolve)
 import Json.Encode
 
 
@@ -32,50 +32,72 @@ empty =
     }
 
 
-noteListDecoder : Decoder (List Note)
-noteListDecoder =
-    Json.Decode.list noteDecoder
+listDecoder : Decoder (List Note)
+listDecoder =
+    Decode.list decoder
 
 
-noteDecoder : Decoder Note
-noteDecoder =
-    Json.Decode.succeed Note
-        |> required "id" Json.Decode.string
-        |> required "title" Json.Decode.string
-        |> required "content" contentDecoder
-
-
-contentDecoder : Decoder Content
-contentDecoder =
-    let
-        get noteContent =
-            case noteContent of
-                "TodoList" ->
-                    Debug.todo "Cannot decode variant with params: TodoList"
-
-                "Text" ->
-                    Json.Decode.succeed <| Text noteContent
-
-                "Empty" ->
-                    Json.Decode.succeed Empty
-
-                _ ->
-                    Json.Decode.fail ("unknown value for Content: " ++ noteContent)
-    in
-    Json.Decode.string |> Json.Decode.andThen get
-
-
-encodeNote : Note -> Json.Encode.Value
-encodeNote note =
-    Json.Encode.object <|
-        [ ( "id", Json.Encode.string note.id )
-        , ( "title", Json.Encode.string note.title )
-        , ( "content", encodeContent note.content )
+decoder : Decoder Note
+decoder =
+    oneOf
+        [ textNoteDecoder
+        , todoListNoteDecoder
         ]
 
 
+textNoteDecoder : Decoder Note
+textNoteDecoder =
+    succeed toTextNote
+        |> required "key" Decode.string
+        |> required "title" Decode.string
+        |> required "type" Decode.string
+        |> required "content" Decode.string
+        -- toNote is executed before resolve
+        |> resolve
 
--- TODO: double-check generated code
+
+todoListNoteDecoder : Decoder Note
+todoListNoteDecoder =
+    succeed toTodoNote
+        |> required "key" Decode.string
+        |> required "title" Decode.string
+        |> required "type" Decode.string
+        |> required "content" itemListDecoder
+        -- toNote is executed before resolve
+        |> resolve
+
+
+toTextNote : String -> String -> String -> String -> Decoder Note
+toTextNote key title type_ content =
+    case type_ of
+        "Text" ->
+            succeed (Note key title (Text content))
+
+        "Empty" ->
+            succeed (Note key title Empty)
+
+        _ ->
+            fail ("Invalid type: " ++ type_)
+
+
+toTodoNote : String -> String -> String -> List Item -> Decoder Note
+toTodoNote key title type_ items =
+    case type_ of
+        "TodoList" ->
+            succeed (Note key title (TodoList items))
+
+        _ ->
+            fail ("Invalid type: " ++ type_)
+
+
+encoder : Note -> Json.Encode.Value
+encoder note =
+    Json.Encode.object <|
+        [ ( "key", Json.Encode.string note.id )
+        , ( "title", Json.Encode.string note.title )
+        , ( "type", encodeType note.content )
+        , ( "content", encodeContent note.content )
+        ]
 
 
 encodeItem : Item -> Json.Encode.Value
@@ -86,8 +108,16 @@ encodeItem item =
         ]
 
 
+itemListDecoder : Decoder (List Item)
+itemListDecoder =
+    Decode.list itemDecoder
 
--- TODO: double-check generated code
+
+itemDecoder : Decoder Item
+itemDecoder =
+    succeed Item
+        |> required "checked" Decode.bool
+        |> required "text" Decode.string
 
 
 encodeContent : Content -> Json.Encode.Value
@@ -98,6 +128,19 @@ encodeContent content =
 
         Text string ->
             Json.Encode.string string
+
+        Empty ->
+            Json.Encode.string ""
+
+
+encodeType : Content -> Json.Encode.Value
+encodeType content =
+    case content of
+        TodoList _ ->
+            Json.Encode.string "TodoList"
+
+        Text _ ->
+            Json.Encode.string "Text"
 
         Empty ->
             Json.Encode.string "Empty"
