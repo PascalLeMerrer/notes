@@ -56,8 +56,13 @@ classes =
     , class "selected-note"
         [ padding (px 5)
         ]
+    , class "text-editor"
+        [ fontFamilies [ "Verdana", "Arial" ]
+        , fontSize (rem 1)
+        , padding (px 5)
+        ]
     , class "title-editor"
-        [ fontSize (rem 1.5)
+        [ fontSize (rem 1)
         , fontWeight bold
         , marginLeft (px 6)
         , marginTop (px 16)

@@ -87,7 +87,7 @@ update msg model =
             ( model, createNote newNote ServerSavedNewNote )
 
         UserClickedNoteContent ->
-            ( { model | isEditingContent = True }, focusOn contentEditorId NoOp )
+            ( { model | isEditingContent = True }, focusOn textEditorId NoOp )
 
         UserClickedNoteTitle ->
             ( { model | isEditingTitle = True }, focusOn titleEditorId NoOp )
@@ -212,7 +212,8 @@ viewEditableText noteContent =
     div [ class "vertical-container fill-height" ]
         [ textarea
             [ class "fill-height"
-            , id contentEditorId
+            , class textEditorId
+            , id textEditorId
             , onInput UserChangedContent
             , value noteContent
             ]
@@ -220,15 +221,16 @@ viewEditableText noteContent =
         ]
 
 
-contentEditorId : String
-contentEditorId =
-    "content-editor"
+textEditorId : String
+textEditorId =
+    "text-editor"
 
 
 viewReadOnlyText : String -> Html Msg
 viewReadOnlyText noteContent =
     div
         [ class "vertical-container fill-height"
+        , class textEditorId
         , onClick UserClickedNoteContent
         ]
         [ text noteContent ]
