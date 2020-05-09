@@ -89,6 +89,18 @@ update msg model =
             , Cmd.map NoteListMsg cmd
             )
 
+        NoteEditorMsg (ServerSavedNote (Success note)) ->
+            let
+                ( updatedNoteListModel, cmd ) =
+                    NoteList.update (UserUpdatedNote note) model.noteListModel
+            in
+            ( model
+                |> withNoteList updatedNoteListModel
+                |> withSelectedNote Nothing
+                |> withNoteEditor NoteEditor.init
+            , Cmd.map NoteListMsg cmd
+            )
+
         NoteEditorMsg noteEditorMsg ->
             let
                 ( updatedNoteEditorModel, cmd ) =
@@ -117,8 +129,7 @@ selectNote model note =
             NoteEditor.update (NoteEditor.UserSelectedNote note) model.noteEditorModel
     in
     ( model
-        |> withSelectedNote
-            (Just note)
+        |> withSelectedNote (Just note)
         |> withNoteEditor updatedNoteEditorModel
     , Cmd.map NoteEditorMsg cmd
     )

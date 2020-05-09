@@ -5,6 +5,7 @@ import Fixtures exposing (allNotes)
 import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text)
 import Html.Styled.Attributes exposing (checked, class, type_)
 import Html.Styled.Events exposing (onClick)
+import List.Extra
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
 import Requests.Endpoint exposing (getAllNotes)
@@ -16,6 +17,7 @@ type Msg
     = ServerReturnedNoteList (WebData (List Note))
     | UserClickedNote Note
     | UserCreatedNote Note
+    | UserUpdatedNote Note
     | MessageToastChanged (MessageToast Msg)
 
 
@@ -27,6 +29,11 @@ type alias Model =
     { messageToast : MessageToast Msg
     , notes : List Note
     }
+
+
+withNotes : List Note -> Model -> Model
+withNotes notes model =
+    { model | notes = notes }
 
 
 init : ( Model, Cmd Msg )
@@ -46,7 +53,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ServerReturnedNoteList (Success notes) ->
-            ( { model | notes = notes }
+            ( model |> withNotes notes
             , Cmd.none
             )
 
@@ -67,12 +74,21 @@ update msg model =
             ( model, Cmd.none )
 
         UserCreatedNote note ->
-            ( { model | notes = note :: model.notes }
+            ( model |> withNotes (note :: model.notes)
             , Cmd.none
             )
 
         MessageToastChanged updatedMessageToast ->
             ( { model | messageToast = updatedMessageToast }, Cmd.none )
+
+        UserUpdatedNote updatedNote ->
+            let
+                newNotes =
+                    List.Extra.setIf (\note -> note.id == updatedNote.id) updatedNote model.notes
+            in
+            ( model |> withNotes newNotes
+            , Cmd.none
+            )
 
 
 

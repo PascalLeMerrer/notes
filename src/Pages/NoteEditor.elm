@@ -8,13 +8,14 @@ import Html.Styled.Attributes exposing (checked, class, id, type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
-import Requests.Endpoint exposing (createNote)
+import Requests.Endpoint exposing (createNote, updateNote)
 import Utils.Html exposing (focusOn)
 import Utils.Http exposing (errorToString)
 
 
 type alias Model =
-    { title : String
+    { noteId : String
+    , title : String
     , content : Content
     , isEditingContent : Bool
     , isEditingTitle : Bool
@@ -26,6 +27,7 @@ type Msg
     = MessageToastChanged (MessageToast Msg)
     | NoOp
     | ServerSavedNewNote (WebData Note)
+    | ServerSavedNote (WebData Note)
     | UserClickedBackButton
     | UserClickedNoteContent
     | UserClickedNoteTitle
@@ -36,7 +38,8 @@ type Msg
 
 init : Model
 init =
-    { title = ""
+    { noteId = ""
+    , title = ""
     , content = Empty
     , isEditingContent = False
     , isEditingTitle = False
@@ -63,6 +66,20 @@ update msg model =
             ( { model | messageToast = toast }, Cmd.none )
 
         ServerSavedNewNote webdata ->
+            -- TODO handle these cases
+            ( model, Cmd.none )
+
+        ServerSavedNote (Failure err) ->
+            let
+                toast =
+                    model.messageToast
+                        |> MessageToast.danger
+                        |> MessageToast.withMessage (errorToString err)
+            in
+            ( { model | messageToast = toast }, Cmd.none )
+
+        ServerSavedNote webData ->
+            -- TODO handle these cases
             ( model, Cmd.none )
 
         UserChangedContent string ->
@@ -76,15 +93,18 @@ update msg model =
             ( { model | title = string }, Cmd.none )
 
         UserClickedBackButton ->
-            -- TODO test if id is defined and then update if the note was modified
             let
-                newNote =
-                    { id = ""
+                note =
+                    { id = model.noteId
                     , content = model.content
                     , title = model.title
                     }
             in
-            ( model, createNote newNote ServerSavedNewNote )
+            if note.id == "" then
+                ( model, createNote note ServerSavedNewNote )
+
+            else
+                ( model, updateNote note ServerSavedNote )
 
         UserClickedNoteContent ->
             ( { model | isEditingContent = True }, focusOn textEditorId NoOp )
@@ -94,7 +114,8 @@ update msg model =
 
         UserSelectedNote note ->
             ( { model
-                | title = note.title
+                | noteId = note.id
+                , title = note.title
                 , content = note.content
               }
             , Cmd.none
