@@ -4,12 +4,13 @@ import Components.BackButton as BackButton
 import Data.Note as Note exposing (Content(..), Note)
 import Html.Attributes
 import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text, textarea)
-import Html.Styled.Attributes exposing (checked, class, type_, value)
+import Html.Styled.Attributes exposing (checked, class, id, type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
-import Http.Utils exposing (errorToString)
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
 import Requests.Endpoint exposing (createNote)
+import Utils.Html exposing (focusOn)
+import Utils.Http exposing (errorToString)
 
 
 type alias Model =
@@ -22,8 +23,9 @@ type alias Model =
 
 
 type Msg
-    = ServerSavedNewNote (WebData Note)
-    | MessageToastChanged (MessageToast Msg)
+    = MessageToastChanged (MessageToast Msg)
+    | NoOp
+    | ServerSavedNewNote (WebData Note)
     | UserClickedBackButton
     | UserClickedNoteContent
     | UserClickedNoteTitle
@@ -45,6 +47,24 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        MessageToastChanged updatedMessageToast ->
+            ( { model | messageToast = updatedMessageToast }, Cmd.none )
+
+        NoOp ->
+            ( model, Cmd.none )
+
+        ServerSavedNewNote (Failure err) ->
+            let
+                toast =
+                    model.messageToast
+                        |> MessageToast.danger
+                        |> MessageToast.withMessage (errorToString err)
+            in
+            ( { model | messageToast = toast }, Cmd.none )
+
+        ServerSavedNewNote webdata ->
+            ( model, Cmd.none )
+
         UserChangedContent string ->
             if String.trim string == "" then
                 ( { model | content = Empty }, Cmd.none )
@@ -67,7 +87,10 @@ update msg model =
             ( model, createNote newNote ServerSavedNewNote )
 
         UserClickedNoteContent ->
-            ( { model | isEditingContent = True }, Cmd.none )
+            ( { model | isEditingContent = True }, focusOn contentEditorId NoOp )
+
+        UserClickedNoteTitle ->
+            ( { model | isEditingTitle = True }, focusOn titleEditorId NoOp )
 
         UserSelectedNote note ->
             ( { model
@@ -76,24 +99,6 @@ update msg model =
               }
             , Cmd.none
             )
-
-        ServerSavedNewNote (Failure err) ->
-            let
-                toast =
-                    model.messageToast
-                        |> MessageToast.danger
-                        |> MessageToast.withMessage (errorToString err)
-            in
-            ( { model | messageToast = toast }, Cmd.none )
-
-        ServerSavedNewNote webdata ->
-            ( model, Cmd.none )
-
-        MessageToastChanged updatedMessageToast ->
-            ( { model | messageToast = updatedMessageToast }, Cmd.none )
-
-        UserClickedNoteTitle ->
-            ( { model | isEditingTitle = True }, Cmd.none )
 
 
 {-| displays a note in full screen
@@ -133,10 +138,16 @@ viewTitle model =
 viewEditableTitle : String -> Html Msg
 viewEditableTitle title =
     input
-        [ value title
+        [ id titleEditorId
+        , value title
         , onInput UserChangedTitle
         ]
         []
+
+
+titleEditorId : String
+titleEditorId =
+    "title-editor"
 
 
 viewReadOnlyTitle : String -> Html Msg
@@ -199,12 +210,18 @@ viewEditableText : String -> Html Msg
 viewEditableText noteContent =
     div [ class "vertical-container fill-height" ]
         [ textarea
-            [ value noteContent
-            , class "fill-height"
+            [ class "fill-height"
+            , id contentEditorId
             , onInput UserChangedContent
+            , value noteContent
             ]
             []
         ]
+
+
+contentEditorId : String
+contentEditorId =
+    "content-editor"
 
 
 viewReadOnlyText : String -> Html Msg

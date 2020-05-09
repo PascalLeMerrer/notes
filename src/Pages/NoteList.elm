@@ -5,10 +5,11 @@ import Fixtures exposing (allNotes)
 import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text)
 import Html.Styled.Attributes exposing (checked, class, type_)
 import Html.Styled.Events exposing (onClick)
-import Http.Utils exposing (errorToString)
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
 import Requests.Endpoint exposing (getAllNotes)
+import Utils.Html exposing (noContent)
+import Utils.Http exposing (errorToString)
 
 
 type Msg
@@ -113,10 +114,6 @@ viewNoteContent note =
 
         Empty ->
             noContent
-
-
-noContent =
-    text ""
 
 
 viewItems : List Note.Item -> Html msg
