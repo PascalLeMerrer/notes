@@ -1,7 +1,7 @@
 module Components.Stylesheet exposing (all)
 
 import Components.Colors exposing (averageGrey, darkerGrey, red)
-import Css exposing (Style, absolute, alignItems, alignSelf, auto, border3, borderBottom3, bottom, center, color, column, cursor, displayFlex, flex, flexBasis, flexDirection, flexGrow, flexShrink, flexStart, fontFamilies, height, justifyContent, left, margin, marginBottom, num, padding, paddingLeft, paddingRight, pct, pointer, position, px, relative, right, row, solid, stretch, transform, translate, translate2, width)
+import Css exposing (Style, absolute, alignItems, alignSelf, auto, bold, border3, borderBottom3, bottom, center, color, column, cursor, displayFlex, flex, flexBasis, flexDirection, flexGrow, flexShrink, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, left, margin, marginBottom, marginLeft, marginTop, num, padding, paddingLeft, paddingRight, pct, pointer, position, px, relative, rem, right, row, solid, stretch, transform, translate, translate2, width)
 import Css.Global exposing (Snippet, class, global)
 import Html.Styled
 
@@ -55,6 +55,13 @@ classes =
         ]
     , class "selected-note"
         [ padding (px 5)
+        ]
+    , class "title-editor"
+        [ fontSize (rem 1.5)
+        , fontWeight bold
+        , marginLeft (px 6)
+        , marginTop (px 16)
+        , marginBottom (px 16)
         ]
     , class "vertical-container"
         [ displayFlex

@@ -139,6 +139,7 @@ viewEditableTitle : String -> Html Msg
 viewEditableTitle title =
     input
         [ id titleEditorId
+        , class titleEditorId
         , value title
         , onInput UserChangedTitle
         ]
