@@ -11,7 +11,7 @@ import Html.Styled.Events exposing (onClick, onInput)
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
 import Requests.Endpoint exposing (createNote, deleteNote, updateNote)
-import Utils.Html exposing (focusOn, viewIf)
+import Utils.Html exposing (focusOn, noContent, viewIf)
 import Utils.Http exposing (errorToString)
 
 
@@ -35,14 +35,51 @@ type Msg
 
 
 type alias Model =
-    { noteId : String
-    , title : String
-    , content : Content
+    { note : WebData Note
     , isEditingContent : Bool
     , isEditingTitle : Bool
     , isSaving : Bool
     , messageToast : MessageToast Msg
     }
+
+
+withNote : WebData Note -> Model -> Model
+withNote webData model =
+    { model | note = webData }
+
+
+withNoteTitle : String -> Model -> Model
+withNoteTitle title model =
+    let
+        currentNote =
+            getNote model
+
+        updatedNote =
+            { currentNote | title = title }
+    in
+    model |> withNote (Success updatedNote)
+
+
+withNoteContent : Content -> Model -> Model
+withNoteContent content model =
+    let
+        currentNote =
+            getNote model
+
+        updatedNote =
+            { currentNote | content = content }
+    in
+    model |> withNote (Success updatedNote)
+
+
+getNote : Model -> Note
+getNote model =
+    case model.note of
+        Success note ->
+            note
+
+        _ ->
+            Note.empty
 
 
 withIsSaving : Bool -> Model -> Model
@@ -57,9 +94,7 @@ withMessageToast messageToast model =
 
 init : Model
 init =
-    { noteId = ""
-    , title = ""
-    , content = Empty
+    { note = NotAsked
     , isEditingContent = False
     , isEditingTitle = False
     , isSaving = False
@@ -117,21 +152,22 @@ update msg model =
 
         UserChangedContent string ->
             if String.trim string == "" then
-                ( { model | content = Empty }, Cmd.none )
+                ( model |> withNoteContent Empty
+                , Cmd.none
+                )
 
             else
-                ( { model | content = Text string }, Cmd.none )
+                ( model |> withNoteContent (Text string)
+                , Cmd.none
+                )
 
         UserChangedTitle string ->
-            ( { model | title = string }, Cmd.none )
+            ( model |> withNoteTitle string, Cmd.none )
 
         UserClickedBackButton ->
             let
                 note =
-                    { id = model.noteId
-                    , content = model.content
-                    , title = model.title
-                    }
+                    getNote model
             in
             if note.id == "" then
                 ( model |> withIsSaving True
@@ -150,19 +186,18 @@ update msg model =
             ( { model | isEditingTitle = True }, focusOn titleEditorId NoOp )
 
         UserSelectedNote note ->
-            ( { model
-                | noteId = note.id
-                , title = note.title
-                , content = note.content
-              }
+            ( model |> withNote (Success note)
             , Cmd.none
             )
 
         UserClickedDeleteButton ->
             let
+                note =
+                    getNote model
+
                 noteToDelete =
-                    -- there is no need to send title and content, the server just needs the noteId
-                    { id = model.noteId
+                    -- there is no need to send title and content, the server just needs the note Id
+                    { id = note.id
                     , title = ""
                     , content = Empty
                     }
@@ -198,14 +233,18 @@ viewHeader model =
 
 viewTitle : Model -> Html Msg
 viewTitle model =
+    let
+        title =
+            (getNote model).title
+    in
     if model.isEditingTitle then
-        viewEditableTitle model.title
+        viewEditableTitle title
 
-    else if String.isEmpty model.title then
+    else if String.isEmpty title then
         viewTitlePlaceholder
 
     else
-        viewReadOnlyTitle model.title
+        viewReadOnlyTitle title
 
 
 viewEditableTitle : String -> Html Msg
@@ -244,7 +283,11 @@ viewTitlePlaceholder =
 
 viewContent : Model -> Html Msg
 viewContent model =
-    case model.content of
+    let
+        content =
+            model |> getNote |> .content
+    in
+    case content of
         Note.TodoList items ->
             viewItems items
 
