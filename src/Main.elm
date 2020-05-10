@@ -77,6 +77,18 @@ init _ =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoteEditorMsg (ServerDeletedNote noteId (Success _)) ->
+            let
+                ( updatedNoteListModel, cmd ) =
+                    NoteList.update (UserDeletedNote noteId) model.noteListModel
+            in
+            ( model
+                |> withNoteList updatedNoteListModel
+                |> withSelectedNote Nothing
+                |> withNoteEditor NoteEditor.init
+            , Cmd.map NoteListMsg cmd
+            )
+
         NoteEditorMsg (ServerSavedNewNote (Success note)) ->
             let
                 ( updatedNoteListModel, cmd ) =

@@ -1,6 +1,6 @@
 module NoteTest exposing (..)
 
-import Data.Note exposing (Content(..), Note, decoder, encoder)
+import Data.Note exposing (Content(..), Note, decoder, encode)
 import Expect exposing (Expectation)
 import Json.Decode
 import Json.Encode
@@ -61,19 +61,19 @@ suite =
             [ test "should encode text note in Json" <|
                 \_ ->
                     textNote
-                        |> encoder
+                        |> encode
                         |> Json.Encode.encode 0
                         |> Expect.equal encodedTextNote
             , test "should encode empty note in Json" <|
                 \_ ->
                     emptyNote
-                        |> encoder
+                        |> encode
                         |> Json.Encode.encode 0
                         |> Expect.equal encodedEmptyNote
             , test "should encode item list in Json" <|
                 \_ ->
                     todoNote
-                        |> encoder
+                        |> encode
                         |> Json.Encode.encode 0
                         |> Expect.equal encodedTodoNote
             ]

@@ -1,4 +1,4 @@
-module Data.Note exposing (Content(..), Item, Note, decoder, empty, encoder, listDecoder)
+module Data.Note exposing (Content(..), Item, Note, decoder, empty, encode, listDecoder)
 
 import Json.Decode as Decode exposing (Decoder, fail, oneOf, succeed)
 import Json.Decode.Pipeline exposing (optional, required, resolve)
@@ -90,8 +90,8 @@ toTodoNote key title type_ items =
             fail ("Invalid type: " ++ type_)
 
 
-encoder : Note -> Json.Encode.Value
-encoder note =
+encode : Note -> Json.Encode.Value
+encode note =
     Json.Encode.object <|
         [ ( "key", Json.Encode.string note.id )
         , ( "title", Json.Encode.string note.title )

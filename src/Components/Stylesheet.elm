@@ -1,7 +1,7 @@
 module Components.Stylesheet exposing (all)
 
 import Components.Colors exposing (averageGrey, darkerGrey, red)
-import Css exposing (Style, absolute, alignItems, alignSelf, auto, bold, border3, borderBottom3, bottom, center, color, column, cursor, displayFlex, flex, flexBasis, flexDirection, flexGrow, flexShrink, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, left, margin, marginBottom, marginLeft, marginTop, num, padding, paddingLeft, paddingRight, pct, pointer, position, px, relative, rem, right, row, solid, stretch, transform, translate, translate2, width)
+import Css exposing (Style, absolute, alignItems, alignSelf, auto, bold, border3, borderBottom3, bottom, center, color, column, cursor, displayFlex, flex, flexBasis, flexDirection, flexEnd, flexGrow, flexShrink, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, left, margin, marginBottom, marginLeft, marginRight, marginTop, num, padding, paddingLeft, paddingRight, pct, pointer, position, px, relative, rem, right, row, solid, stretch, transform, translate, translate2, width)
 import Css.Global exposing (Snippet, class, global)
 import Html.Styled
 
@@ -25,6 +25,10 @@ classes =
     , class "clickable"
         [ cursor pointer
         ]
+    , class "delete-button"
+        [ marginLeft (px 20)
+        , marginRight (px 20)
+        ]
     , class "message-toast-container"
         [ left (px 20)
         ]
@@ -38,12 +42,15 @@ classes =
         [ displayFlex
         , flexDirection row
         , alignItems center
+        , justifyContent flexStart
         , borderBottom3 (px 1) solid darkerGrey
         , marginBottom (px 10)
         ]
     , class "note-title"
-        [ paddingLeft (px 10)
-        , paddingRight (px 10)
+        [ marginLeft (px 20)
+        , marginRight (px 10)
+        , displayFlex
+        , flexGrow (num 1)
         ]
     , class "placeholder"
         [ color averageGrey ]
@@ -67,6 +74,8 @@ classes =
         , marginLeft (px 6)
         , marginTop (px 16)
         , marginBottom (px 16)
+        , displayFlex
+        , flexGrow (num 1)
         ]
     , class "vertical-container"
         [ displayFlex

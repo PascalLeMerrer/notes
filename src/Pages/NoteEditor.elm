@@ -1,14 +1,16 @@
 module Pages.NoteEditor exposing (Model, Msg(..), init, subscriptions, update, view, viewContent)
 
 import Components.BackButton as BackButton
+import Components.DeleteButton as DeleteButton
 import Data.Note as Note exposing (Content(..), Note)
 import Html.Attributes
 import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, id, type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
+import List.Extra exposing (indexedFoldr)
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
-import Requests.Endpoint exposing (createNote, updateNote)
+import Requests.Endpoint exposing (createNote, deleteNote, updateNote)
 import Utils.Html exposing (focusOn)
 import Utils.Http exposing (errorToString)
 
@@ -26,6 +28,7 @@ type alias Model =
 type Msg
     = MessageToastChanged (MessageToast Msg)
     | NoOp
+    | ServerDeletedNote String (WebData String)
     | ServerSavedNewNote (WebData Note)
     | ServerSavedNote (WebData Note)
     | UserClickedBackButton
@@ -33,6 +36,7 @@ type Msg
     | UserClickedNoteTitle
     | UserChangedContent String
     | UserChangedTitle String
+    | UserClickedDeleteButton
     | UserSelectedNote Note
 
 
@@ -54,6 +58,9 @@ update msg model =
             ( { model | messageToast = updatedMessageToast }, Cmd.none )
 
         NoOp ->
+            ( model, Cmd.none )
+
+        ServerDeletedNote _ _ ->
             ( model, Cmd.none )
 
         ServerSavedNewNote (Failure err) ->
@@ -121,12 +128,25 @@ update msg model =
             , Cmd.none
             )
 
+        UserClickedDeleteButton ->
+            let
+                noteToDelete =
+                    -- there is no need to send title and content, the server just needs the noteId
+                    { id = model.noteId
+                    , title = ""
+                    , content = Empty
+                    }
+            in
+            ( model
+            , deleteNote noteToDelete (ServerDeletedNote noteToDelete.id)
+            )
+
 
 {-| displays a note in full screen
 -}
 view : Model -> Html Msg
 view model =
-    div [ class "clickable selected-note vertical-container fill-height" ]
+    div [ class "selected-note vertical-container fill-height" ]
         [ viewHeader model
         , viewContent model
         , model.messageToast
@@ -141,6 +161,7 @@ viewHeader model =
     div [ class "header" ]
         [ BackButton.view UserClickedBackButton
         , viewTitle model
+        , viewDeleteButton
         ]
 
 
@@ -175,7 +196,7 @@ titleEditorId =
 viewReadOnlyTitle : String -> Html Msg
 viewReadOnlyTitle title =
     h2
-        [ class "note-title"
+        [ class "note-title clickable"
         , onClick UserClickedNoteTitle
         ]
         [ text title ]
@@ -184,7 +205,7 @@ viewReadOnlyTitle title =
 viewTitlePlaceholder : Html Msg
 viewTitlePlaceholder =
     h2
-        [ class "note-title placeholder"
+        [ class "note-title placeholder clickable"
         , onClick UserClickedNoteTitle
         ]
         [ text "Titre" ]
@@ -211,7 +232,7 @@ viewItems items =
 viewItem : Note.Item -> Html Msg
 viewItem item =
     div []
-        [ input [ type_ "checkbox", checked item.checked ] []
+        [ input [ type_ "checkbox", class "clickable", checked item.checked ] []
         , text item.text
         ]
 
@@ -250,7 +271,7 @@ textEditorId =
 viewReadOnlyText : String -> Html Msg
 viewReadOnlyText noteContent =
     div
-        [ class "vertical-container fill-height"
+        [ class "vertical-container fill-height clickable"
         , class textEditorId
         , onClick UserClickedNoteContent
         ]
@@ -260,10 +281,18 @@ viewReadOnlyText noteContent =
 viewTextPlaceholder : Html Msg
 viewTextPlaceholder =
     div
-        [ class "vertical-container fill-height placeholder"
+        [ class "vertical-container fill-height placeholder clickable"
         , onClick UserClickedNoteContent
         ]
         [ text "Texte" ]
+
+
+viewDeleteButton : Html Msg
+viewDeleteButton =
+    div
+        [ class "delete-button clickable"
+        ]
+        [ DeleteButton.view UserClickedDeleteButton ]
 
 
 

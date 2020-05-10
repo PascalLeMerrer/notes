@@ -17,6 +17,7 @@ type Msg
     = ServerReturnedNoteList (WebData (List Note))
     | UserClickedNote Note
     | UserCreatedNote Note
+    | UserDeletedNote String
     | UserUpdatedNote Note
     | MessageToastChanged (MessageToast Msg)
 
@@ -52,6 +53,35 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        MessageToastChanged updatedMessageToast ->
+            ( { model | messageToast = updatedMessageToast }, Cmd.none )
+
+        UserClickedNote note ->
+            ( model, Cmd.none )
+
+        UserCreatedNote note ->
+            ( model |> withNotes (note :: model.notes)
+            , Cmd.none
+            )
+
+        UserDeletedNote noteId ->
+            let
+                newNotes =
+                    removeNoteWithId noteId model.notes
+            in
+            ( model |> withNotes newNotes
+            , Cmd.none
+            )
+
+        UserUpdatedNote updatedNote ->
+            let
+                newNotes =
+                    List.Extra.setIf (\note -> note.id == updatedNote.id) updatedNote model.notes
+            in
+            ( model |> withNotes newNotes
+            , Cmd.none
+            )
+
         ServerReturnedNoteList (Success notes) ->
             ( model |> withNotes notes
             , Cmd.none
@@ -70,25 +100,20 @@ update msg model =
             -- TODO handle other cases
             ( model, Cmd.none )
 
-        UserClickedNote note ->
-            ( model, Cmd.none )
 
-        UserCreatedNote note ->
-            ( model |> withNotes (note :: model.notes)
-            , Cmd.none
-            )
+{-| Remove an element with the given id
+-}
+removeNoteWithId : String -> List Note -> List Note
+removeNoteWithId id =
+    List.foldr
+        (\note acc ->
+            if note.id == id then
+                acc
 
-        MessageToastChanged updatedMessageToast ->
-            ( { model | messageToast = updatedMessageToast }, Cmd.none )
-
-        UserUpdatedNote updatedNote ->
-            let
-                newNotes =
-                    List.Extra.setIf (\note -> note.id == updatedNote.id) updatedNote model.notes
-            in
-            ( model |> withNotes newNotes
-            , Cmd.none
-            )
+            else
+                note :: acc
+        )
+        []
 
 
 
