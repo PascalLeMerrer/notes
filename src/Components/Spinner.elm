@@ -8,7 +8,7 @@ import Loading exposing (LoaderType(..), defaultConfig)
 view : Html msg
 view =
     div
-        [ class "spinner fill-height" ]
+        [ class "vertically-centered fill-height" ]
         [ div
             []
             [ Loading.render

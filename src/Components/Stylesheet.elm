@@ -1,7 +1,7 @@
 module Components.Stylesheet exposing (all)
 
-import Components.Colors exposing (averageGrey, darkerGrey, red)
-import Css exposing (Style, absolute, alignItems, alignSelf, auto, bold, border3, borderBottom3, bottom, center, color, column, cursor, displayFlex, flex, flexBasis, flexDirection, flexEnd, flexGrow, flexShrink, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, left, margin, marginBottom, marginLeft, marginRight, marginTop, num, padding, paddingLeft, paddingRight, pct, pointer, position, px, relative, rem, right, row, solid, stretch, transform, translate, translate2, width)
+import Components.Colors exposing (averageGreen, averageGrey, darkerGrey, lightGreen, red, white)
+import Css exposing (Style, absolute, alignItems, alignSelf, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, displayFlex, flex, flexBasis, flexDirection, flexEnd, flexGrow, flexShrink, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, left, margin, marginBottom, marginLeft, marginRight, marginTop, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, relative, rem, right, row, solid, stretch, transform, translate, translate2, width)
 import Css.Global exposing (Snippet, class, global)
 import Html.Styled
 
@@ -63,16 +63,27 @@ classes =
         , right (px 0)
         , transform (translate2 (pct -50) (pct -100))
         ]
+    , class "horizontally-centered"
+        [ marginLeft auto
+        , marginRight auto
+        ]
+    , class "retry"
+        [ backgroundColor lightGreen
+        , color white
+        , paddingTop (px 10)
+        , paddingBottom (px 10)
+        , paddingLeft (px 20)
+        , paddingRight (px 20)
+        , fontSize (rem 1.5)
+        , borderRadius (px 5)
+        , borderColor averageGreen
+        , cursor pointer
+        ]
     , class "selected-note"
         [ padding (px 5)
         ]
     , class "selected-note"
         [ alignSelf center
-        ]
-    , class "spinner"
-        [ displayFlex
-        , flexDirection column
-        , justifyContent center
         ]
     , class "text-editor"
         [ fontFamilies [ "Verdana", "Arial" ]
@@ -87,6 +98,11 @@ classes =
         , marginBottom (px 16)
         , displayFlex
         , flexGrow (num 1)
+        ]
+    , class "vertically-centered"
+        [ displayFlex
+        , flexDirection column
+        , justifyContent center
         ]
     , class "vertical-container"
         [ displayFlex

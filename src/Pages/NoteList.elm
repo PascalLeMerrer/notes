@@ -1,8 +1,9 @@
 module Pages.NoteList exposing (..)
 
+import Components.Retry as Retry
 import Components.Spinner as Spinner
 import Data.Note as Note exposing (Content(..), Note)
-import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text)
+import Html.Styled exposing (Html, button, div, fromUnstyled, h2, input, p, text)
 import Html.Styled.Attributes exposing (checked, class, type_)
 import Html.Styled.Events exposing (onClick)
 import List.Extra
@@ -16,6 +17,7 @@ import Utils.Http exposing (errorToString)
 type Msg
     = ServerReturnedNoteList (WebData (List Note))
     | UserClickedNote Note
+    | UserClickedRetry
     | UserCreatedNote Note
     | UserDeletedNote String
     | UserUpdatedNote Note
@@ -32,9 +34,14 @@ type alias Model =
     }
 
 
-withNotes : List Note -> Model -> Model
-withNotes notes model =
-    { model | notes = Success notes }
+withMessageToast : MessageToast Msg -> Model -> Model
+withMessageToast messageToast model =
+    { model | messageToast = messageToast }
+
+
+withNotes : WebData (List Note) -> Model -> Model
+withNotes webDataNotes model =
+    { model | notes = webDataNotes }
 
 
 allNotes : Model -> List Note
@@ -56,7 +63,7 @@ allNotes model =
 init : ( Model, Cmd Msg )
 init =
     ( { messageToast = MessageToast.init MessageToastChanged
-      , notes = NotAsked
+      , notes = Loading
       }
     , getAllNotes ServerReturnedNoteList
     )
@@ -69,6 +76,11 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        UserClickedRetry ->
+            ( model |> withNotes Loading
+            , getAllNotes ServerReturnedNoteList
+            )
+
         MessageToastChanged updatedMessageToast ->
             ( { model | messageToast = updatedMessageToast }, Cmd.none )
 
@@ -76,7 +88,7 @@ update msg model =
             ( model, Cmd.none )
 
         UserCreatedNote note ->
-            ( model |> withNotes (note :: allNotes model)
+            ( model |> withNotes (Success (note :: allNotes model))
             , Cmd.none
             )
 
@@ -85,7 +97,7 @@ update msg model =
                 newNotes =
                     removeNoteWithId noteId (allNotes model)
             in
-            ( model |> withNotes newNotes
+            ( model |> withNotes (Success newNotes)
             , Cmd.none
             )
 
@@ -94,12 +106,12 @@ update msg model =
                 newNotes =
                     List.Extra.setIf (\note -> note.id == updatedNote.id) updatedNote (allNotes model)
             in
-            ( model |> withNotes newNotes
+            ( model |> withNotes (Success newNotes)
             , Cmd.none
             )
 
         ServerReturnedNoteList (Success notes) ->
-            ( model |> withNotes notes
+            ( model |> withNotes (Success notes)
             , Cmd.none
             )
 
@@ -110,7 +122,11 @@ update msg model =
                         |> MessageToast.danger
                         |> MessageToast.withMessage (errorToString err)
             in
-            ( { model | messageToast = toast }, Cmd.none )
+            ( model
+                |> withMessageToast toast
+                |> withNotes (Failure err)
+            , Cmd.none
+            )
 
         ServerReturnedNoteList _ ->
             -- TODO handle other cases
@@ -141,13 +157,13 @@ view model =
     div [ class "flex-container fill-height" ] <|
         [ case model.notes of
             NotAsked ->
-                Spinner.view
+                noContent
 
             Loading ->
                 Spinner.view
 
             Failure e ->
-                noContent
+                Retry.view "Ooops. Note loading failed. Is your device online?" UserClickedRetry
 
             Success notes ->
                 viewNotes notes

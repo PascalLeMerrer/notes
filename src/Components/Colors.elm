@@ -28,6 +28,11 @@ lightGreen =
     hex "4d4"
 
 
+averageGreen : Color
+averageGreen =
+    hex "01BB01"
+
+
 averageGrey : Color
 averageGrey =
     hex "CCC"

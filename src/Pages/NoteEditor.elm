@@ -2,6 +2,7 @@ module Pages.NoteEditor exposing (Model, Msg(..), init, subscriptions, update, v
 
 import Components.BackButton as BackButton
 import Components.DeleteButton as DeleteButton
+import Components.Spinner as Spinner
 import Data.Note as Note exposing (Content(..), Note)
 import Html.Attributes
 import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text, textarea)
@@ -10,18 +11,8 @@ import Html.Styled.Events exposing (onClick, onInput)
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
 import Requests.Endpoint exposing (createNote, deleteNote, updateNote)
-import Utils.Html exposing (focusOn)
+import Utils.Html exposing (focusOn, viewIf)
 import Utils.Http exposing (errorToString)
-
-
-type alias Model =
-    { noteId : String
-    , title : String
-    , content : Content
-    , isEditingContent : Bool
-    , isEditingTitle : Bool
-    , messageToast : MessageToast Msg
-    }
 
 
 type Msg
@@ -39,6 +30,31 @@ type Msg
     | UserSelectedNote Note
 
 
+
+-- MODEL
+
+
+type alias Model =
+    { noteId : String
+    , title : String
+    , content : Content
+    , isEditingContent : Bool
+    , isEditingTitle : Bool
+    , isSaving : Bool
+    , messageToast : MessageToast Msg
+    }
+
+
+withIsSaving : Bool -> Model -> Model
+withIsSaving status model =
+    { model | isSaving = status }
+
+
+withMessageToast : MessageToast Msg -> Model -> Model
+withMessageToast messageToast model =
+    { model | messageToast = messageToast }
+
+
 init : Model
 init =
     { noteId = ""
@@ -46,6 +62,7 @@ init =
     , content = Empty
     , isEditingContent = False
     , isEditingTitle = False
+    , isSaving = False
     , messageToast = MessageToast.init MessageToastChanged
     }
 
@@ -54,7 +71,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         MessageToastChanged updatedMessageToast ->
-            ( { model | messageToast = updatedMessageToast }, Cmd.none )
+            ( model
+                |> withMessageToast updatedMessageToast
+            , Cmd.none
+            )
 
         NoOp ->
             ( model, Cmd.none )
@@ -69,14 +89,13 @@ update msg model =
                         |> MessageToast.danger
                         |> MessageToast.withMessage (errorToString err)
             in
-            ( { model | messageToast = toast }, Cmd.none )
+            ( model
+                |> withMessageToast toast
+                |> withIsSaving False
+            , Cmd.none
+            )
 
-        ServerSavedNewNote webdata ->
-            -- TODO handle these cases
-            let
-                _ =
-                    Debug.log "webdata" webdata
-            in
+        ServerSavedNewNote _ ->
             ( model, Cmd.none )
 
         ServerSavedNote (Failure err) ->
@@ -86,7 +105,11 @@ update msg model =
                         |> MessageToast.danger
                         |> MessageToast.withMessage (errorToString err)
             in
-            ( { model | messageToast = toast }, Cmd.none )
+            ( model
+                |> withMessageToast toast
+                |> withIsSaving False
+            , Cmd.none
+            )
 
         ServerSavedNote webData ->
             -- TODO handle these cases
@@ -111,10 +134,14 @@ update msg model =
                     }
             in
             if note.id == "" then
-                ( model, createNote note ServerSavedNewNote )
+                ( model |> withIsSaving True
+                , createNote note ServerSavedNewNote
+                )
 
             else
-                ( model, updateNote note ServerSavedNote )
+                ( model |> withIsSaving True
+                , updateNote note ServerSavedNote
+                )
 
         UserClickedNoteContent ->
             ( { model | isEditingContent = True }, focusOn textEditorId NoOp )
@@ -140,7 +167,7 @@ update msg model =
                     , content = Empty
                     }
             in
-            ( model
+            ( model |> withIsSaving True
             , deleteNote noteToDelete (ServerDeletedNote noteToDelete.id)
             )
 
@@ -152,6 +179,7 @@ view model =
     div [ class "selected-note vertical-container fill-height" ]
         [ viewHeader model
         , viewContent model
+        , viewIf model.isSaving Spinner.view
         , model.messageToast
             |> MessageToast.overwriteContainerAttributes [ Html.Attributes.class "message-toast-container" ]
             |> MessageToast.view
