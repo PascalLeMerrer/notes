@@ -3,6 +3,10 @@ module Fixtures exposing (..)
 import Data.Note exposing (..)
 
 
+
+--TODO delete this module
+
+
 allNotes =
     [ todoNote1, commonNote ]
 
