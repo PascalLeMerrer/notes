@@ -4,9 +4,8 @@ import Browser exposing (Document)
 import Components.PlusButton as PlusButton
 import Components.Stylesheet as Stylesheet
 import Data.Note as Note exposing (Note)
-import Fixtures exposing (allNotes)
 import Html
-import Html.Styled exposing (Html, div, fromUnstyled, h1, text, toUnstyled)
+import Html.Styled exposing (Html, div, h1, text, toUnstyled)
 import Html.Styled.Attributes exposing (class)
 import Pages.NoteEditor as NoteEditor exposing (Msg(..))
 import Pages.NoteList as NoteList exposing (Msg(..))
@@ -35,7 +34,6 @@ type Msg
 type alias Model =
     { noteEditorModel : NoteEditor.Model
     , noteListModel : NoteList.Model
-    , notes : List Note
     , selectedNote : Maybe Note
     }
 
@@ -63,7 +61,6 @@ init _ =
     in
     ( { noteEditorModel = NoteEditor.init
       , noteListModel = noteListModel
-      , notes = allNotes
       , selectedNote = Nothing
       }
     , Cmd.map NoteListMsg noteListCmd

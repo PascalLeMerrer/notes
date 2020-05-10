@@ -4,7 +4,7 @@ import Data.Note exposing (..)
 
 
 
---TODO delete this module
+--TODO ensure this module is used or delete it
 
 
 allNotes =
