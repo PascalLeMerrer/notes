@@ -1,7 +1,8 @@
 module Utils.Html exposing (..)
 
 import Browser.Dom
-import Html.Styled exposing (Html, text)
+import Html.Styled exposing (Html, fromUnstyled, text)
+import Loading exposing (LoaderType(..), defaultConfig)
 import Task
 
 

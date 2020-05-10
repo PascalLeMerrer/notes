@@ -38,6 +38,9 @@ classes =
     , class "fill-height"
         [ flex (num 1)
         ]
+    , class "flex-container"
+        [ displayFlex
+        ]
     , class "header"
         [ displayFlex
         , flexDirection row
@@ -62,6 +65,14 @@ classes =
         ]
     , class "selected-note"
         [ padding (px 5)
+        ]
+    , class "selected-note"
+        [ alignSelf center
+        ]
+    , class "spinner"
+        [ displayFlex
+        , flexDirection column
+        , justifyContent center
         ]
     , class "text-editor"
         [ fontFamilies [ "Verdana", "Arial" ]

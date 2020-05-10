@@ -1,7 +1,7 @@
 module Pages.NoteList exposing (..)
 
+import Components.Spinner as Spinner
 import Data.Note as Note exposing (Content(..), Note)
-import Fixtures exposing (allNotes)
 import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text)
 import Html.Styled.Attributes exposing (checked, class, type_)
 import Html.Styled.Events exposing (onClick)
@@ -28,19 +28,35 @@ type Msg
 
 type alias Model =
     { messageToast : MessageToast Msg
-    , notes : List Note
+    , notes : WebData (List Note)
     }
 
 
 withNotes : List Note -> Model -> Model
 withNotes notes model =
-    { model | notes = notes }
+    { model | notes = Success notes }
+
+
+allNotes : Model -> List Note
+allNotes model =
+    case model.notes of
+        NotAsked ->
+            []
+
+        Loading ->
+            []
+
+        Failure e ->
+            []
+
+        Success notes ->
+            notes
 
 
 init : ( Model, Cmd Msg )
 init =
     ( { messageToast = MessageToast.init MessageToastChanged
-      , notes = allNotes
+      , notes = NotAsked
       }
     , getAllNotes ServerReturnedNoteList
     )
@@ -56,18 +72,18 @@ update msg model =
         MessageToastChanged updatedMessageToast ->
             ( { model | messageToast = updatedMessageToast }, Cmd.none )
 
-        UserClickedNote note ->
+        UserClickedNote _ ->
             ( model, Cmd.none )
 
         UserCreatedNote note ->
-            ( model |> withNotes (note :: model.notes)
+            ( model |> withNotes (note :: allNotes model)
             , Cmd.none
             )
 
         UserDeletedNote noteId ->
             let
                 newNotes =
-                    removeNoteWithId noteId model.notes
+                    removeNoteWithId noteId (allNotes model)
             in
             ( model |> withNotes newNotes
             , Cmd.none
@@ -76,7 +92,7 @@ update msg model =
         UserUpdatedNote updatedNote ->
             let
                 newNotes =
-                    List.Extra.setIf (\note -> note.id == updatedNote.id) updatedNote model.notes
+                    List.Extra.setIf (\note -> note.id == updatedNote.id) updatedNote (allNotes model)
             in
             ( model |> withNotes newNotes
             , Cmd.none
@@ -120,12 +136,29 @@ removeNoteWithId id =
 -- VIEW
 
 
+view : Model -> Html Msg
 view model =
-    div [ class "fill-height" ] <|
-        (List.map viewNote model.notes
-            ++ [ fromUnstyled <| MessageToast.view model.messageToast
-               ]
-        )
+    div [ class "flex-container fill-height" ] <|
+        [ case model.notes of
+            NotAsked ->
+                Spinner.view
+
+            Loading ->
+                Spinner.view
+
+            Failure e ->
+                noContent
+
+            Success notes ->
+                viewNotes notes
+        , fromUnstyled <| MessageToast.view model.messageToast
+        ]
+
+
+viewNotes : List Note -> Html Msg
+viewNotes notes =
+    div []
+        (List.map viewNote notes)
 
 
 viewNote : Note -> Html Msg

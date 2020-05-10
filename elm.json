@@ -18,6 +18,7 @@
             "krisajenkins/remotedata": "6.0.1",
             "mercurymedia/elm-message-toast": "2.0.0",
             "ohanhi/remotedata-http": "4.0.0",
+            "perzanko/elm-loading": "2.0.4",
             "rtfeldman/elm-css": "16.0.1"
         },
         "indirect": {

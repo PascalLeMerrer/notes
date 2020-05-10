@@ -7,7 +7,6 @@ import Html.Attributes
 import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, id, type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
-import List.Extra exposing (indexedFoldr)
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
 import Requests.Endpoint exposing (createNote, deleteNote, updateNote)
@@ -74,6 +73,10 @@ update msg model =
 
         ServerSavedNewNote webdata ->
             -- TODO handle these cases
+            let
+                _ =
+                    Debug.log "webdata" webdata
+            in
             ( model, Cmd.none )
 
         ServerSavedNote (Failure err) ->
