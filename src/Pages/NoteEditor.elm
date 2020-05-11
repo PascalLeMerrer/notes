@@ -2,6 +2,7 @@ module Pages.NoteEditor exposing (Model, Msg(..), init, subscriptions, update, v
 
 import Components.BackButton as BackButton
 import Components.DeleteButton as DeleteButton
+import Components.Retry as Retry
 import Components.Spinner as Spinner
 import Data.Note as Note exposing (Content(..), Note)
 import Html.Attributes
@@ -11,7 +12,7 @@ import Html.Styled.Events exposing (onClick, onInput)
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
 import Requests.Endpoint exposing (createNote, deleteNote, updateNote)
-import Utils.Html exposing (focusOn, noContent, viewIf)
+import Utils.Html exposing (focusOn, noContent)
 import Utils.Http exposing (errorToString)
 
 
@@ -35,56 +36,84 @@ type Msg
 
 
 type alias Model =
-    { note : WebData Note
+    { content : Content
+    , id : String
     , isEditingContent : Bool
     , isEditingTitle : Bool
-    , isSaving : Bool
     , messageToast : MessageToast Msg
+    , msgToRetry : Maybe Msg
+    , note : WebData Note
+    , title : String
     }
+
+
+withContent : Content -> Model -> Model
+withContent content model =
+    { model | content = content }
+
+
+withId : String -> Model -> Model
+withId id model =
+    { model | id = id }
+
+
+withTitle : String -> Model -> Model
+withTitle title model =
+    { model | title = title }
+
+
+withMessageToRetry : Maybe Msg -> Model -> Model
+withMessageToRetry msg model =
+    { model | msgToRetry = msg }
 
 
 withNote : WebData Note -> Model -> Model
 withNote webData model =
-    { model | note = webData }
-
-
-withNoteTitle : String -> Model -> Model
-withNoteTitle title model =
     let
-        currentNote =
-            getNote model
+        updatedModel =
+            case webData of
+                Success note ->
+                    model
+                        |> withId note.id
+                        |> withContent note.content
+                        |> withTitle note.title
 
-        updatedNote =
-            { currentNote | title = title }
+                _ ->
+                    -- when the server request failed, or is not finished yet, let the model unchanged
+                    model
     in
-    model |> withNote (Success updatedNote)
+    { updatedModel | note = webData }
 
 
-withNoteContent : Content -> Model -> Model
-withNoteContent content model =
-    let
-        currentNote =
-            getNote model
 
-        updatedNote =
-            { currentNote | content = content }
-    in
-    model |> withNote (Success updatedNote)
-
-
-getNote : Model -> Note
-getNote model =
-    case model.note of
-        Success note ->
-            note
-
-        _ ->
-            Note.empty
-
-
-withIsSaving : Bool -> Model -> Model
-withIsSaving status model =
-    { model | isSaving = status }
+--withNoteTitle : String -> Model -> Model
+--withNoteTitle title model =
+--    let
+--        currentNote =
+--            getNote model
+--
+--        updatedNote =
+--            { currentNote | title = title }
+--    in
+--    model |> withNote (Success updatedNote)
+--withNoteContent : Content -> Model -> Model
+--withNoteContent content model =
+--    let
+--        currentNote =
+--            getNote model
+--
+--        updatedNote =
+--            { currentNote | content = content }
+--    in
+--    model |> withNote (Success updatedNote)
+--getNote : Model -> Note
+--getNote model =
+--    case model.note of
+--        Success note ->
+--            note
+--
+--        _ ->
+--            Note.empty
 
 
 withMessageToast : MessageToast Msg -> Model -> Model
@@ -94,11 +123,14 @@ withMessageToast messageToast model =
 
 init : Model
 init =
-    { note = NotAsked
+    { content = Empty
+    , id = ""
     , isEditingContent = False
     , isEditingTitle = False
-    , isSaving = False
     , messageToast = MessageToast.init MessageToastChanged
+    , msgToRetry = Nothing
+    , note = NotAsked
+    , title = ""
     }
 
 
@@ -114,10 +146,7 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        ServerDeletedNote _ _ ->
-            ( model, Cmd.none )
-
-        ServerSavedNewNote (Failure err) ->
+        ServerDeletedNote noteId (Failure err) ->
             let
                 toast =
                     model.messageToast
@@ -126,12 +155,31 @@ update msg model =
             in
             ( model
                 |> withMessageToast toast
-                |> withIsSaving False
+                -- TODO verify this; is it the right content for the note?
+                |> withNote (Failure err)
             , Cmd.none
             )
 
-        ServerSavedNewNote _ ->
+        ServerDeletedNote _ _ ->
             ( model, Cmd.none )
+
+        ServerSavedNewNote (Failure err) ->
+            let
+                -- TODO factorize with other (Failure err) branches
+                toast =
+                    model.messageToast
+                        |> MessageToast.danger
+                        |> MessageToast.withMessage (errorToString err)
+            in
+            ( model
+                |> withMessageToast toast
+                --TODO this causes an issue, when succeeding after a retry an empty note is added to noteList
+                |> withNote (Failure err)
+            , Cmd.none
+            )
+
+        ServerSavedNewNote webDataNote ->
+            ( model |> withNote webDataNote, Cmd.none )
 
         ServerSavedNote (Failure err) ->
             let
@@ -142,40 +190,48 @@ update msg model =
             in
             ( model
                 |> withMessageToast toast
-                |> withIsSaving False
+                |> withNote (Failure err)
             , Cmd.none
             )
 
-        ServerSavedNote webData ->
-            -- TODO handle these cases
-            ( model, Cmd.none )
+        ServerSavedNote webDataNote ->
+            ( model |> withNote webDataNote, Cmd.none )
 
         UserChangedContent string ->
             if String.trim string == "" then
-                ( model |> withNoteContent Empty
+                ( model |> withContent Empty
                 , Cmd.none
                 )
 
             else
-                ( model |> withNoteContent (Text string)
+                ( model |> withContent (Text string)
                 , Cmd.none
                 )
 
         UserChangedTitle string ->
-            ( model |> withNoteTitle string, Cmd.none )
+            ( model |> withTitle string, Cmd.none )
 
         UserClickedBackButton ->
             let
+                note : Note
                 note =
-                    getNote model
+                    { id = model.id
+                    , title = model.title
+                    , content = model.content
+                    }
+
+                updatedModel =
+                    model
+                        |> withNote Loading
+                        |> withMessageToRetry (Just UserClickedBackButton)
             in
             if note.id == "" then
-                ( model |> withIsSaving True
+                ( updatedModel
                 , createNote note ServerSavedNewNote
                 )
 
             else
-                ( model |> withIsSaving True
+                ( updatedModel
                 , updateNote note ServerSavedNote
                 )
 
@@ -192,17 +248,16 @@ update msg model =
 
         UserClickedDeleteButton ->
             let
-                note =
-                    getNote model
-
                 noteToDelete =
                     -- there is no need to send title and content, the server just needs the note Id
-                    { id = note.id
+                    { id = model.id
                     , title = ""
                     , content = Empty
                     }
             in
-            ( model |> withIsSaving True
+            ( model
+                |> withNote Loading
+                |> withMessageToRetry (Just UserClickedDeleteButton)
             , deleteNote noteToDelete (ServerDeletedNote noteToDelete.id)
             )
 
@@ -211,14 +266,38 @@ update msg model =
 -}
 view : Model -> Html Msg
 view model =
+    let
+        mainContent =
+            case model.note of
+                NotAsked ->
+                    noContent
+
+                Loading ->
+                    Spinner.view
+
+                Failure e ->
+                    div []
+                        [ viewHeader model
+                        , Retry.view "Oops. Something went wrong" (model.msgToRetry |> Maybe.withDefault NoOp)
+                        ]
+
+                Success _ ->
+                    viewNote model
+    in
     div [ class "selected-note vertical-container fill-height" ]
-        [ viewHeader model
-        , viewContent model
-        , viewIf model.isSaving Spinner.view
+        [ mainContent
         , model.messageToast
             |> MessageToast.overwriteContainerAttributes [ Html.Attributes.class "message-toast-container" ]
             |> MessageToast.view
             |> fromUnstyled
+        ]
+
+
+viewNote : Model -> Html Msg
+viewNote model =
+    div []
+        [ viewHeader model
+        , viewContent model
         ]
 
 
@@ -233,18 +312,14 @@ viewHeader model =
 
 viewTitle : Model -> Html Msg
 viewTitle model =
-    let
-        title =
-            (getNote model).title
-    in
     if model.isEditingTitle then
-        viewEditableTitle title
+        viewEditableTitle model.title
 
-    else if String.isEmpty title then
+    else if String.isEmpty model.title then
         viewTitlePlaceholder
 
     else
-        viewReadOnlyTitle title
+        viewReadOnlyTitle model.title
 
 
 viewEditableTitle : String -> Html Msg
@@ -283,11 +358,7 @@ viewTitlePlaceholder =
 
 viewContent : Model -> Html Msg
 viewContent model =
-    let
-        content =
-            model |> getNote |> .content
-    in
-    case content of
+    case model.content of
         Note.TodoList items ->
             viewItems items
 
