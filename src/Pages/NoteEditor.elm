@@ -85,37 +85,6 @@ withNote webData model =
     { updatedModel | note = webData }
 
 
-
---withNoteTitle : String -> Model -> Model
---withNoteTitle title model =
---    let
---        currentNote =
---            getNote model
---
---        updatedNote =
---            { currentNote | title = title }
---    in
---    model |> withNote (Success updatedNote)
---withNoteContent : Content -> Model -> Model
---withNoteContent content model =
---    let
---        currentNote =
---            getNote model
---
---        updatedNote =
---            { currentNote | content = content }
---    in
---    model |> withNote (Success updatedNote)
---getNote : Model -> Note
---getNote model =
---    case model.note of
---        Success note ->
---            note
---
---        _ ->
---            Note.empty
-
-
 withMessageToast : MessageToast Msg -> Model -> Model
 withMessageToast messageToast model =
     { model | messageToast = messageToast }
