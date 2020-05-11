@@ -340,13 +340,26 @@ viewContent model =
 
 viewItems : List Note.Item -> Html Msg
 viewItems items =
-    div [] <| List.map viewItem items
+    items
+        |> List.sortWith checkedComparison
+        |> List.map viewItem
+        |> div []
 
 
+checkedComparison : Note.Item -> Note.Item -> Order
+checkedComparison a b =
+    if a.checked && not b.checked then
+        GT
 
---TODO: move in a dedicated module in order to share with noteList?
+    else if b.checked && not a.checked then
+        LT
+
+    else
+        EQ
 
 
+{-| TODO: move in a dedicated module in order to share with noteList?
+-}
 viewItem : Note.Item -> Html Msg
 viewItem item =
     let

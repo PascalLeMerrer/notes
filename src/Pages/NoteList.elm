@@ -205,9 +205,26 @@ viewNoteContent note =
             noContent
 
 
-viewItems : List Note.Item -> Html msg
+{-| TODO: factorize with NoteEditor.viewItems.
+-}
+viewItems : List Note.Item -> Html Msg
 viewItems items =
-    div [] <| List.map viewItem items
+    items
+        |> List.sortWith checkedComparison
+        |> List.map viewItem
+        |> div []
+
+
+checkedComparison : Note.Item -> Note.Item -> Order
+checkedComparison a b =
+    if a.checked && not b.checked then
+        GT
+
+    else if b.checked && not a.checked then
+        LT
+
+    else
+        EQ
 
 
 viewItem : Note.Item -> Html msg
