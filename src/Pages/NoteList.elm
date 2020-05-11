@@ -154,27 +154,26 @@ removeNoteWithId id =
 
 view : Model -> Html Msg
 view model =
-    div [ class "flex-container fill-height" ] <|
-        [ case model.notes of
-            NotAsked ->
-                noContent
+    let
+        toaster =
+            fromUnstyled <| MessageToast.view model.messageToast
+    in
+    case model.notes of
+        NotAsked ->
+            div [ class "fill-height" ] [ toaster ]
 
-            Loading ->
-                Spinner.view
+        Loading ->
+            div [ class "flex-container fill-height" ] [ Spinner.view, toaster ]
 
-            Failure e ->
-                Retry.view "Ooops. Note loading failed. Is your device online?" UserClickedRetry
+        Failure e ->
+            div [ class "fill-height" ]
+                [ Retry.view "Ooops. Note loading failed. Is your device online?" UserClickedRetry
+                , toaster
+                ]
 
-            Success notes ->
-                viewNotes notes
-        , fromUnstyled <| MessageToast.view model.messageToast
-        ]
-
-
-viewNotes : List Note -> Html Msg
-viewNotes notes =
-    div []
-        (List.map viewNote notes)
+        Success notes ->
+            div [ class "fill-height" ]
+                (List.map viewNote notes)
 
 
 viewNote : Note -> Html Msg
