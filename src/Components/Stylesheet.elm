@@ -1,7 +1,7 @@
 module Components.Stylesheet exposing (all)
 
 import Components.Colors exposing (averageGreen, averageGrey, darkerGrey, lightGreen, red, white)
-import Css exposing (Style, absolute, alignItems, alignSelf, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, displayFlex, flex, flexBasis, flexDirection, flexEnd, flexGrow, flexShrink, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, left, margin, marginBottom, marginLeft, marginRight, marginTop, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, relative, rem, right, row, solid, stretch, transform, translate, translate2, width)
+import Css exposing (Style, absolute, alignItems, alignSelf, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, displayFlex, fixed, flex, flexBasis, flexDirection, flexEnd, flexGrow, flexShrink, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, left, margin, marginBottom, marginLeft, marginRight, marginTop, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, relative, rem, right, row, solid, stretch, transform, translate, translate2, width)
 import Css.Global exposing (Snippet, class, global)
 import Html.Styled
 
@@ -58,7 +58,7 @@ classes =
     , class "placeholder"
         [ color averageGrey ]
     , class "plus-button-container"
-        [ position absolute
+        [ position fixed
         , bottom (px 0)
         , right (px 0)
         , transform (translate2 (pct -50) (pct -100))
