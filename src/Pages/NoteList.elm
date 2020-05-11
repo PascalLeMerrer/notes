@@ -212,8 +212,16 @@ viewItems items =
 
 viewItem : Note.Item -> Html msg
 viewItem item =
-    div []
-        [ input [ type_ "checkbox", checked item.checked ] []
+    let
+        className =
+            if item.checked then
+                "checked-item"
+
+            else
+                ""
+    in
+    div [ class className ]
+        [ input [ type_ "checkbox", class "clickable", checked item.checked ] []
         , text item.text
         ]
 

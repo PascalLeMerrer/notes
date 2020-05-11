@@ -343,9 +343,21 @@ viewItems items =
     div [] <| List.map viewItem items
 
 
+
+--TODO: move in a dedicated module in order to share with noteList?
+
+
 viewItem : Note.Item -> Html Msg
 viewItem item =
-    div []
+    let
+        className =
+            if item.checked then
+                "checked-item"
+
+            else
+                ""
+    in
+    div [ class className ]
         [ input [ type_ "checkbox", class "clickable", checked item.checked ] []
         , text item.text
         ]

@@ -1,7 +1,7 @@
 module Components.Stylesheet exposing (all)
 
 import Components.Colors exposing (averageGreen, averageGrey, darkerGrey, lightGreen, red, white)
-import Css exposing (Style, absolute, alignItems, alignSelf, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, displayFlex, fixed, flex, flexBasis, flexDirection, flexEnd, flexGrow, flexShrink, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, left, margin, marginBottom, marginLeft, marginRight, marginTop, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, relative, rem, right, row, solid, stretch, transform, translate, translate2, width)
+import Css exposing (Style, absolute, alignItems, alignSelf, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, displayFlex, fixed, flex, flexBasis, flexDirection, flexEnd, flexGrow, flexShrink, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, left, lineThrough, margin, marginBottom, marginLeft, marginRight, marginTop, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, relative, rem, right, row, solid, stretch, textDecorationLine, transform, translate, translate2, width)
 import Css.Global exposing (Snippet, class, global)
 import Html.Styled
 
@@ -21,6 +21,10 @@ classes =
         [ border3 (px 1) solid darkerGrey
         , margin (px 5)
         , padding (px 5)
+        ]
+    , class "checked-item"
+        [ color averageGrey
+        , textDecorationLine lineThrough
         ]
     , class "clickable"
         [ cursor pointer
