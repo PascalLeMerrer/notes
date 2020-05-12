@@ -9,6 +9,7 @@ type alias Note =
     { id : String
     , title : String
     , content : Content
+    , order : Int
     }
 
 
@@ -29,6 +30,7 @@ empty =
     { id = ""
     , title = ""
     , content = Empty
+    , order = 0
     }
 
 
@@ -52,6 +54,7 @@ textNoteDecoder =
         |> required "title" Decode.string
         |> required "type" Decode.string
         |> required "content" Decode.string
+        |> required "order" Decode.int
         -- toNote is executed before resolve
         |> resolve
 
@@ -63,28 +66,29 @@ todoListNoteDecoder =
         |> required "title" Decode.string
         |> required "type" Decode.string
         |> required "content" itemListDecoder
+        |> required "order" Decode.int
         -- toNote is executed before resolve
         |> resolve
 
 
-toTextNote : String -> String -> String -> String -> Decoder Note
-toTextNote key title type_ content =
+toTextNote : String -> String -> String -> String -> Int -> Decoder Note
+toTextNote key title type_ content order =
     case type_ of
         "Text" ->
-            succeed (Note key title (Text content))
+            succeed (Note key title (Text content) order)
 
         "Empty" ->
-            succeed (Note key title Empty)
+            succeed (Note key title Empty order)
 
         _ ->
             fail ("Invalid type: " ++ type_)
 
 
-toTodoNote : String -> String -> String -> List Item -> Decoder Note
-toTodoNote key title type_ items =
+toTodoNote : String -> String -> String -> List Item -> Int -> Decoder Note
+toTodoNote key title type_ items order =
     case type_ of
         "TodoList" ->
-            succeed (Note key title (TodoList items))
+            succeed (Note key title (TodoList items) order)
 
         _ ->
             fail ("Invalid type: " ++ type_)
@@ -97,6 +101,7 @@ encode note =
         , ( "title", Json.Encode.string note.title )
         , ( "type", encodeType note.content )
         , ( "content", encodeContent note.content )
+        , ( "order", Json.Encode.int note.order )
         ]
 
 

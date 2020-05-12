@@ -111,7 +111,11 @@ update msg model =
             )
 
         ServerReturnedNoteList (Success notes) ->
-            ( model |> withNotes (Success notes)
+            let
+                sortedNotes =
+                    List.sortWith orderComparison notes
+            in
+            ( model |> withNotes (Success sortedNotes)
             , Cmd.none
             )
 
@@ -131,6 +135,18 @@ update msg model =
         ServerReturnedNoteList _ ->
             -- TODO handle other cases
             ( model, Cmd.none )
+
+
+orderComparison : Note -> Note -> Order
+orderComparison a b =
+    if a.order < b.order then
+        GT
+
+    else if a.order > b.order then
+        LT
+
+    else
+        EQ
 
 
 {-| Remove an element with the given id

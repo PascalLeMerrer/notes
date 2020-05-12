@@ -43,6 +43,7 @@ type alias Model =
     , messageToast : MessageToast Msg
     , msgToRetry : Maybe Msg
     , note : WebData Note
+    , order : Int
     , title : String
     }
 
@@ -55,6 +56,11 @@ withContent content model =
 withId : String -> Model -> Model
 withId id model =
     { model | id = id }
+
+
+withOrder : Int -> Model -> Model
+withOrder order model =
+    { model | order = order }
 
 
 withTitle : String -> Model -> Model
@@ -77,6 +83,7 @@ withNote webData model =
                         |> withId note.id
                         |> withContent note.content
                         |> withTitle note.title
+                        |> withOrder note.order
 
                 _ ->
                     -- when the server request failed, or is not finished yet, let the model unchanged
@@ -99,6 +106,7 @@ init =
     , messageToast = MessageToast.init MessageToastChanged
     , msgToRetry = Nothing
     , note = NotAsked
+    , order = 0
     , title = ""
     }
 
@@ -187,6 +195,7 @@ update msg model =
                     { id = model.id
                     , title = model.title
                     , content = model.content
+                    , order = model.order
                     }
 
                 updatedModel =
@@ -211,7 +220,7 @@ update msg model =
             ( { model | isEditingTitle = True }, focusOn titleEditorId NoOp )
 
         UserSelectedNote note ->
-            ( model |> withNote (Success note)
+            ( model |> withNote (Success <| Debug.log "UserSelectedNote" note)
             , Cmd.none
             )
 
@@ -222,6 +231,7 @@ update msg model =
                     { id = model.id
                     , title = ""
                     , content = Empty
+                    , order = 0
                     }
             in
             ( model

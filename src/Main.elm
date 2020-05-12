@@ -8,7 +8,7 @@ import Html
 import Html.Styled exposing (Html, div, h1, text, toUnstyled)
 import Html.Styled.Attributes exposing (class)
 import Pages.NoteEditor as NoteEditor exposing (Msg(..))
-import Pages.NoteList as NoteList exposing (Msg(..))
+import Pages.NoteList as NoteList exposing (Msg(..), allNotes)
 import RemoteData exposing (RemoteData(..))
 
 
@@ -128,7 +128,21 @@ update msg model =
             ( model |> withNoteList updatedNoteListModel, Cmd.map NoteListMsg cmd )
 
         UserClickedPlusButton ->
-            selectNote model Note.empty
+            let
+                firstNoteOrder =
+                    allNotes model.noteListModel
+                        |> List.head
+                        |> Maybe.map .order
+                        |> Maybe.withDefault 0
+
+                emptyNote =
+                    Note.empty
+
+                noteWithOrder =
+                    Debug.log "noteWithOrder"
+                        { emptyNote | order = firstNoteOrder + 1 }
+            in
+            selectNote model noteWithOrder
 
 
 selectNote : Model -> Note -> ( Model, Cmd Msg )
