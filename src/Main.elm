@@ -139,8 +139,7 @@ update msg model =
                     Note.empty
 
                 noteWithOrder =
-                    Debug.log "noteWithOrder"
-                        { emptyNote | order = firstNoteOrder + 1 }
+                    { emptyNote | order = firstNoteOrder + 1 }
             in
             selectNote model noteWithOrder
 
@@ -169,15 +168,10 @@ view model =
     }
 
 
-viewTitle : Model -> Html Msg
-viewTitle model =
-    h1 [] [ text "Notes" ]
-
-
 viewBody : Model -> List (Html.Html Msg)
 viewBody model =
     [ toUnstyled <|
-        div [ class "body vertical-container fill-height" ]
+        div [ class "body" ]
             [ Stylesheet.all
             , case model.selectedNote of
                 Just _ ->
@@ -191,11 +185,16 @@ viewBody model =
 
 viewMain : Model -> Html Msg
 viewMain model =
-    div [ class "vertical-container fill-height" ]
+    div [ class "main" ]
         [ viewTitle model
         , Html.Styled.map NoteListMsg (NoteList.view model.noteListModel)
         , PlusButton.view UserClickedPlusButton
         ]
+
+
+viewTitle : Model -> Html Msg
+viewTitle model =
+    h1 [] [ text "Notes" ]
 
 
 

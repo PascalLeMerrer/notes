@@ -7,7 +7,7 @@ import Html.Styled.Events exposing (onClick)
 
 view : String -> msg -> Html msg
 view errorLabel msg =
-    div [ class "vertically-centered fill-height" ]
-        [ p [ class "horizontally-centered" ] [ text errorLabel ]
-        , button [ class "horizontally-centered retry", onClick msg ] [ text "Retry" ]
+    div [ class "retry" ]
+        [ p [ class "retry-label" ] [ text errorLabel ]
+        , button [ class "retry-button", onClick msg ] [ text "Retry" ]
         ]

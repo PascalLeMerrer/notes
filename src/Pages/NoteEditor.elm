@@ -4,7 +4,7 @@ import Components.BackButton as BackButton
 import Components.DeleteButton as DeleteButton
 import Components.Retry as Retry
 import Components.Spinner as Spinner
-import Data.Note as Note exposing (Content(..), Note)
+import Data.Note as Note exposing (Content(..), Item, Note)
 import Html.Attributes
 import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, id, type_, value)
@@ -29,6 +29,7 @@ type Msg
     | UserChangedTitle String
     | UserClickedDeleteButton
     | UserSelectedNote Note
+    | UserToggledItem Item
 
 
 
@@ -240,6 +241,10 @@ update msg model =
             , deleteNote noteToDelete (ServerDeletedNote noteToDelete.id)
             )
 
+        UserToggledItem item ->
+            --TODO implement
+            ( model, Cmd.none )
+
 
 {-| displays a note in full screen
 -}
@@ -263,7 +268,7 @@ view model =
                 Success _ ->
                     viewNote model
     in
-    div [ class "selected-note vertical-container fill-height" ]
+    div [ class "editor" ]
         [ mainContent
         , model.messageToast
             |> MessageToast.overwriteContainerAttributes [ Html.Attributes.class "message-toast-container" ]
@@ -282,7 +287,7 @@ viewNote model =
 
 viewHeader : Model -> Html Msg
 viewHeader model =
-    div [ class "header" ]
+    div [ class "editor-header" ]
         [ BackButton.view UserClickedBackButton
         , viewTitle model
         , viewDeleteButton
@@ -314,13 +319,13 @@ viewEditableTitle title =
 
 titleEditorId : String
 titleEditorId =
-    "title-editor"
+    "editor-title-input"
 
 
 viewReadOnlyTitle : String -> Html Msg
 viewReadOnlyTitle title =
     h2
-        [ class "note-title clickable"
+        [ class "editor-title-readonly"
         , onClick UserClickedNoteTitle
         ]
         [ text title ]
@@ -329,7 +334,7 @@ viewReadOnlyTitle title =
 viewTitlePlaceholder : Html Msg
 viewTitlePlaceholder =
     h2
-        [ class "note-title placeholder clickable"
+        [ class "editor-title-placeholder"
         , onClick UserClickedNoteTitle
         ]
         [ text "Titre" ]
@@ -348,7 +353,7 @@ viewContent model =
             viewText model ""
 
 
-viewItems : List Note.Item -> Html Msg
+viewItems : List Item -> Html Msg
 viewItems items =
     items
         |> List.sortWith checkedComparison
@@ -356,7 +361,7 @@ viewItems items =
         |> div []
 
 
-checkedComparison : Note.Item -> Note.Item -> Order
+checkedComparison : Item -> Item -> Order
 checkedComparison a b =
     if a.checked && not b.checked then
         GT
@@ -370,7 +375,7 @@ checkedComparison a b =
 
 {-| TODO: move in a dedicated module in order to share with noteList?
 -}
-viewItem : Note.Item -> Html Msg
+viewItem : Item -> Html Msg
 viewItem item =
     let
         className =
@@ -381,7 +386,13 @@ viewItem item =
                 ""
     in
     div [ class className ]
-        [ input [ type_ "checkbox", class "clickable", checked item.checked ] []
+        [ input
+            [ type_ "checkbox"
+            , class "editor-item"
+            , checked item.checked
+            , onClick (UserToggledItem item)
+            ]
+            []
         , text item.text
         ]
 
@@ -400,10 +411,9 @@ viewText model text =
 
 viewEditableText : String -> Html Msg
 viewEditableText noteContent =
-    div [ class "vertical-container fill-height" ]
+    div [ class "textEditor" ]
         [ textarea
-            [ class "fill-height"
-            , class textEditorId
+            [ class "textEditor-textarea"
             , id textEditorId
             , onInput UserChangedContent
             , value noteContent
@@ -420,7 +430,7 @@ textEditorId =
 viewReadOnlyText : String -> Html Msg
 viewReadOnlyText noteContent =
     div
-        [ class "vertical-container fill-height clickable"
+        [ class "editor-text-readonly"
         , class textEditorId
         , onClick UserClickedNoteContent
         ]
@@ -430,7 +440,7 @@ viewReadOnlyText noteContent =
 viewTextPlaceholder : Html Msg
 viewTextPlaceholder =
     div
-        [ class "vertical-container fill-height placeholder clickable"
+        [ class "editor-text-placeholder"
         , onClick UserClickedNoteContent
         ]
         [ text "Texte" ]
@@ -439,7 +449,7 @@ viewTextPlaceholder =
 viewDeleteButton : Html Msg
 viewDeleteButton =
     div
-        [ class "delete-button clickable"
+        [ class "deleteButton"
         ]
         [ DeleteButton.view UserClickedDeleteButton ]
 

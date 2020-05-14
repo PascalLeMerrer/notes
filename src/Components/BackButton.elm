@@ -16,7 +16,7 @@ view message =
         , width buttonWidth
         , height buttonHeight
         , onClick message
-        , class [ "clickable" ]
+        , class [ "backButton" ]
         ]
         [ g []
             [ path

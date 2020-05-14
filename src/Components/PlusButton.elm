@@ -13,7 +13,7 @@ import TypedSvg.Types exposing (Paint(..), Transform(..))
 
 view : msg -> Html msg
 view message =
-    div [ class "plus-button-container clickable" ]
+    div [ class "plusButton" ]
         [ fromUnstyled <|
             Svg.svg
                 [ width buttonDiameter

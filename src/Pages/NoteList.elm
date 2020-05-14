@@ -3,6 +3,7 @@ module Pages.NoteList exposing (..)
 import Components.Retry as Retry
 import Components.Spinner as Spinner
 import Data.Note as Note exposing (Content(..), Note)
+import Fixtures exposing (todoBuyingList)
 import Html.Styled exposing (Html, button, div, fromUnstyled, h2, input, p, text)
 import Html.Styled.Attributes exposing (checked, class, type_)
 import Html.Styled.Events exposing (onClick)
@@ -63,9 +64,10 @@ allNotes model =
 init : ( Model, Cmd Msg )
 init =
     ( { messageToast = MessageToast.init MessageToastChanged
-      , notes = Loading
+      , notes = Success [ todoBuyingList ]
       }
-    , getAllNotes ServerReturnedNoteList
+    , Cmd.none
+      --, getAllNotes ServerReturnedNoteList
     )
 
 
@@ -176,26 +178,26 @@ view model =
     in
     case model.notes of
         NotAsked ->
-            div [ class "fill-height" ] [ toaster ]
+            div [ class "main-notelist" ] [ toaster ]
 
         Loading ->
-            div [ class "flex-container fill-height" ] [ Spinner.view, toaster ]
+            div [] [ Spinner.view, toaster ]
 
         Failure e ->
-            div [ class "fill-height" ]
+            div [ class "main-notelist" ]
                 [ Retry.view "Ooops. Note loading failed. Is your device online?" UserClickedRetry
                 , toaster
                 ]
 
         Success notes ->
-            div [ class "fill-height" ]
+            div [ class "main-notelist" ]
                 (List.map viewNote notes)
 
 
 viewNote : Note -> Html Msg
 viewNote note =
     div
-        [ class "clickable card"
+        [ class "card"
         , onClick (UserClickedNote note)
         ]
         [ viewNoteTitle note
@@ -254,7 +256,12 @@ viewItem item =
                 ""
     in
     div [ class className ]
-        [ input [ type_ "checkbox", class "clickable", checked item.checked ] []
+        [ input
+            [ type_ "checkbox"
+            , class "card-item"
+            , checked item.checked
+            ]
+            []
         , text item.text
         ]
 
