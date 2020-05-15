@@ -1,7 +1,7 @@
 module Components.Stylesheet exposing (all)
 
 import Components.Colors exposing (averageGreen, averageGrey, darkerGrey, lightGreen, white)
-import Css exposing (Style, alignItems, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, displayFlex, fixed, flex, flexDirection, flexGrow, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, margin, marginBottom, marginLeft, marginRight, marginTop, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, rem, right, row, solid, stretch, transform, translate2)
+import Css exposing (Style, alignItems, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, displayFlex, em, fixed, flex, flexDirection, flexGrow, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, margin, marginBottom, marginLeft, marginRight, marginTop, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, rem, right, row, solid, stretch, transform, translate2)
 import Css.Global exposing (Snippet, class, global)
 import Html.Styled
 
@@ -69,6 +69,10 @@ classes =
         , flexDirection column
         , height (pct 100)
         , justifyContent flexStart
+        ]
+    , class "editor-text-line"
+        [ marginTop (em 0.5)
+        , marginBottom (em 0.5)
         ]
     , class "editor-text-readonly"
         [ alignItems stretch

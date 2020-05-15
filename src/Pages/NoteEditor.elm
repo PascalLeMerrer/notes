@@ -6,7 +6,7 @@ import Components.Retry as Retry
 import Components.Spinner as Spinner
 import Data.Note as Note exposing (Content(..), Item, Note, toText, toTodoList)
 import Html.Attributes
-import Html.Styled exposing (Html, button, div, fromUnstyled, h2, input, text, textarea)
+import Html.Styled exposing (Html, button, div, fromUnstyled, h2, input, p, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, id, type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import MessageToast exposing (MessageToast)
@@ -496,7 +496,10 @@ viewReadOnlyText noteContent =
         , class textEditorId
         , onClick UserClickedNoteContent
         ]
-        [ text noteContent ]
+        (noteContent
+            |> String.lines
+            |> List.map (\line -> p [ class "editor-text-line" ] [ text line ])
+        )
 
 
 viewTextPlaceholder : Html Msg
