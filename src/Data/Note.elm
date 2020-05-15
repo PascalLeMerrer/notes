@@ -26,6 +26,7 @@ type Content
 
 type alias Item =
     { checked : Bool
+    , order : Int
     , text : String
     }
 
@@ -114,6 +115,7 @@ encodeItem : Item -> Json.Encode.Value
 encodeItem item =
     Json.Encode.object <|
         [ ( "checked", Json.Encode.bool item.checked )
+        , ( "order", Json.Encode.int item.order )
         , ( "text", Json.Encode.string item.text )
         ]
 
@@ -127,6 +129,7 @@ itemDecoder : Decoder Item
 itemDecoder =
     succeed Item
         |> required "checked" Decode.bool
+        |> required "order" Decode.int
         |> required "text" Decode.string
 
 
@@ -167,7 +170,9 @@ toTodoList note =
                 newContent =
                     text
                         |> String.lines
-                        |> List.map (\line -> { checked = False, text = line })
+                        |> List.reverse
+                        |> List.indexedMap (\idx line -> { checked = False, order = idx + 1, text = line })
+                        |> List.reverse
                         |> TodoList
             in
             note |> withContent newContent

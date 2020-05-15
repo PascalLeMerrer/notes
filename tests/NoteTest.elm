@@ -33,7 +33,7 @@ multiLineText =
 
 multiLineTextNoteItems : List Item
 multiLineTextNoteItems =
-    [ { checked = False, text = "Line 1" }, { checked = False, text = "Line 2" } ]
+    [ { checked = False, order = 2, text = "Line 1" }, { checked = False, order = 1, text = "Line 2" } ]
 
 
 multiLineTodoNote : Note
@@ -64,8 +64,9 @@ emptyTodoNote =
 --
 
 
+items : List Item
 items =
-    [ { checked = False, text = "task1" }, { checked = True, text = "task2" } ]
+    [ { checked = False, order = 2, text = "task1" }, { checked = True, order = 1, text = "task2" } ]
 
 
 todoNote : Note
@@ -75,7 +76,7 @@ todoNote =
 
 encodedTodoNote : String
 encodedTodoNote =
-    "{\"key\":\"a key\",\"title\":\"the title\",\"type\":\"TodoList\",\"content\":[{\"checked\":false,\"text\":\"task1\"},{\"checked\":true,\"text\":\"task2\"}],\"order\":3}"
+    "{\"key\":\"a key\",\"title\":\"the title\",\"type\":\"TodoList\",\"content\":[{\"checked\":false,\"order\":2,\"text\":\"task1\"},{\"checked\":true,\"order\":1,\"text\":\"task2\"}],\"order\":3}"
 
 
 suite : Test

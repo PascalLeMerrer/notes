@@ -419,6 +419,7 @@ viewItems : List Item -> Html Msg
 viewItems items =
     items
         |> List.sortWith checkedComparison
+        |> List.sortWith descendingOrder
         |> List.map viewItem
         |> div []
 
@@ -429,6 +430,18 @@ checkedComparison a b =
         GT
 
     else if b.checked && not a.checked then
+        LT
+
+    else
+        EQ
+
+
+descendingOrder : Item -> Item -> Order
+descendingOrder a b =
+    if a.order < b.order then
+        GT
+
+    else if b.order > a.order then
         LT
 
     else
