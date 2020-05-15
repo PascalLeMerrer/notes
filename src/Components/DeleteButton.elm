@@ -9,10 +9,6 @@ import TypedSvg.Events exposing (onClick)
 import TypedSvg.Types exposing (Paint(..), Transform(..))
 
 
-
--- TODO factorise with Back button
-
-
 view : msg -> Html msg
 view message =
     Svg.svg
