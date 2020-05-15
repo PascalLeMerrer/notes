@@ -1,4 +1,4 @@
-module Data.Note exposing (Content(..), Item, Note, decoder, empty, encode, listDecoder, toTodoList)
+module Data.Note exposing (Content(..), Item, Note, decoder, empty, encode, listDecoder, toText, toTodoList)
 
 import Json.Decode as Decode exposing (Decoder, fail, oneOf, succeed)
 import Json.Decode.Pipeline exposing (optional, required, resolve)
@@ -174,3 +174,26 @@ toTodoList note =
 
         Empty ->
             note |> withContent (TodoList [])
+
+
+toText : Note -> Note
+toText note =
+    case note.content of
+        TodoList items ->
+            let
+                contentAsText =
+                    items
+                        |> List.map .text
+                        |> String.join "\n"
+            in
+            if String.isEmpty contentAsText then
+                note |> withContent Empty
+
+            else
+                note |> withContent (Text contentAsText)
+
+        Text _ ->
+            note
+
+        Empty ->
+            note

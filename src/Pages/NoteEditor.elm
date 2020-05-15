@@ -4,7 +4,7 @@ import Components.BackButton as BackButton
 import Components.DeleteButton as DeleteButton
 import Components.Retry as Retry
 import Components.Spinner as Spinner
-import Data.Note as Note exposing (Content(..), Item, Note, toTodoList)
+import Data.Note as Note exposing (Content(..), Item, Note, toText, toTodoList)
 import Html.Attributes
 import Html.Styled exposing (Html, button, div, fromUnstyled, h2, input, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, id, type_, value)
@@ -23,6 +23,7 @@ type Msg
     | ServerSavedNewNote (WebData Note)
     | ServerSavedNote (WebData Note)
     | UserClickedBackButton
+    | UserClickedTextButton
     | UserClickedTodoListButton
     | UserClickedNoteContent
     | UserClickedNoteTitle
@@ -270,17 +271,25 @@ update msg model =
             --TODO implement
             ( model, Cmd.none )
 
-        UserClickedTodoListButton ->
-            case Debug.log "model.note" model.note of
-                Success note ->
-                    let
-                        convertedNote =
-                            Debug.log "convertedNote" <| toTodoList note
-                    in
-                    ( model |> withNote (Success convertedNote), Cmd.none )
+        UserClickedTextButton ->
+            convert model toText
 
-                _ ->
-                    ( model, Cmd.none )
+        UserClickedTodoListButton ->
+            convert model toTodoList
+
+
+convert : Model -> (Note -> Note) -> ( Model, Cmd Msg )
+convert model converter =
+    case model.note of
+        Success note ->
+            let
+                convertedNote =
+                    converter note
+            in
+            ( model |> withNote (Success convertedNote), Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 {-| displays a note in full screen
@@ -327,7 +336,12 @@ viewHeader model =
     div [ class "editor-header" ]
         [ BackButton.view UserClickedBackButton
         , viewTitle model
-        , viewTodoListButton
+        , case model.content of
+            TodoList _ ->
+                viewTextButton
+
+            _ ->
+                viewTodoListButton
         , viewDeleteButton
         ]
 
@@ -353,6 +367,11 @@ viewEditableTitle title =
         , onInput UserChangedTitle
         ]
         []
+
+
+viewTextButton : Html Msg
+viewTextButton =
+    button [ onClick UserClickedTextButton ] [ text "Text" ]
 
 
 viewTodoListButton : Html Msg

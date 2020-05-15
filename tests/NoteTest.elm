@@ -1,6 +1,6 @@
 module NoteTest exposing (..)
 
-import Data.Note exposing (Content(..), Item, Note, decoder, encode, toTodoList)
+import Data.Note exposing (Content(..), Item, Note, decoder, encode, toText, toTodoList)
 import Expect exposing (Expectation)
 import Json.Decode
 import Json.Encode
@@ -17,14 +17,32 @@ encodedTextNote =
     "{\"key\":\"a key\",\"title\":\"the title\",\"type\":\"Text\",\"content\":\"The note content\",\"order\":1}"
 
 
+
+--
+
+
 multiLineTextNote : Note
 multiLineTextNote =
-    { id = "a key", title = "the title", content = Text "Line 1\nLine 2", order = 42 }
+    { id = "a key", title = "the title", content = Text multiLineText, order = 42 }
+
+
+multiLineText : String
+multiLineText =
+    "Line 1\nLine 2"
 
 
 multiLineTextNoteItems : List Item
 multiLineTextNoteItems =
     [ { checked = False, text = "Line 1" }, { checked = False, text = "Line 2" } ]
+
+
+multiLineTodoNote : Note
+multiLineTodoNote =
+    { id = "a key", title = "the title", content = TodoList multiLineTextNoteItems, order = 42 }
+
+
+
+--
 
 
 emptyNote : Note
@@ -35,6 +53,15 @@ emptyNote =
 encodedEmptyNote : String
 encodedEmptyNote =
     "{\"key\":\"a key\",\"title\":\"the title\",\"type\":\"Empty\",\"content\":\"\",\"order\":2}"
+
+
+emptyTodoNote : Note
+emptyTodoNote =
+    { id = "a key", title = "the title", content = TodoList [], order = 42 }
+
+
+
+--
 
 
 items =
@@ -108,7 +135,7 @@ suite =
 
                         _ ->
                             Expect.fail "Unexpected note content"
-            , test "should convert an empty note into a enmpty Todo list" <|
+            , test "should convert an empty note into an empty Todo list" <|
                 \_ ->
                     case emptyNote |> toTodoList |> .content of
                         TodoList actualItems ->
@@ -117,4 +144,37 @@ suite =
                         _ ->
                             Expect.fail "Unexpected note content"
             ]
+        , describe "toText"
+            [ test "should let a Text note unchanged" <|
+                \_ ->
+                    case multiLineTextNote |> toText |> .content of
+                        Text text ->
+                            Expect.equal multiLineText text
+
+                        _ ->
+                            Expect.fail "Unexpected note content"
+            , test "should let an Empty note unchanged" <|
+                \_ ->
+                    emptyNote
+                        |> toText
+                        |> .content
+                        |> Expect.equal Empty
+            , test "should convert a Todo List note into a Text note" <|
+                \_ ->
+                    case multiLineTodoNote |> toText |> .content of
+                        Text text ->
+                            Expect.equal multiLineText text
+
+                        _ ->
+                            Expect.fail "Unexpected note content"
+            , test "should convert an empty Todo List note into an empty Text note" <|
+                \_ ->
+                    emptyTodoNote
+                        |> toText
+                        |> .content
+                        |> Expect.equal Empty
+            ]
+
+        -- TODO fuzzy testing: toText |> toTextNote |> toText should let the data unchanged
+        -- TODO fuzzy testing: toTextNote |> toText |> toTextNote should let the data unchanged
         ]
