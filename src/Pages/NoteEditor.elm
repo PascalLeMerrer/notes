@@ -4,14 +4,14 @@ import Components.BackButton as BackButton
 import Components.DeleteButton as DeleteButton
 import Components.Retry as Retry
 import Components.Spinner as Spinner
-import Data.Note as Note exposing (Content(..), Item, Note)
+import Data.Note as Note exposing (Content(..), Item, Note, toTodoList)
 import Html.Attributes
-import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text, textarea)
+import Html.Styled exposing (Html, button, div, fromUnstyled, h2, input, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, id, type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
-import Requests.Endpoint exposing (createNote, deleteNote, updateNote)
+import Requests.Endpoint exposing (createNoteCmd, deleteNoteCmd, updateNoteCmd)
 import Utils.Html exposing (focusOn, noContent)
 import Utils.Http exposing (errorToString)
 
@@ -23,6 +23,7 @@ type Msg
     | ServerSavedNewNote (WebData Note)
     | ServerSavedNote (WebData Note)
     | UserClickedBackButton
+    | UserClickedTodoListButton
     | UserClickedNoteContent
     | UserClickedNoteTitle
     | UserChangedContent String
@@ -52,21 +53,41 @@ type alias Model =
 withContent : Content -> Model -> Model
 withContent content model =
     { model | content = content }
+        |> updateNote
 
 
 withId : String -> Model -> Model
 withId id model =
     { model | id = id }
+        |> updateNote
 
 
 withOrder : Int -> Model -> Model
 withOrder order model =
     { model | order = order }
+        |> updateNote
 
 
 withTitle : String -> Model -> Model
 withTitle title model =
     { model | title = title }
+        |> updateNote
+
+
+{-| updates the note according to the content of the model fields
+-}
+updateNote : Model -> Model
+updateNote model =
+    let
+        note : Note
+        note =
+            { id = model.id
+            , title = model.title
+            , content = model.content
+            , order = model.order
+            }
+    in
+    { model | note = Success note }
 
 
 withMessageToRetry : Maybe Msg -> Model -> Model
@@ -182,12 +203,16 @@ update msg model =
                 )
 
             else
-                ( model |> withContent (Text string)
+                ( model
+                    |> withContent (Text string)
                 , Cmd.none
                 )
 
         UserChangedTitle string ->
-            ( model |> withTitle string, Cmd.none )
+            ( model
+                |> withTitle string
+            , Cmd.none
+            )
 
         UserClickedBackButton ->
             let
@@ -206,12 +231,12 @@ update msg model =
             in
             if note.id == "" then
                 ( updatedModel
-                , createNote note ServerSavedNewNote
+                , createNoteCmd note ServerSavedNewNote
                 )
 
             else
                 ( updatedModel
-                , updateNote note ServerSavedNote
+                , updateNoteCmd note ServerSavedNote
                 )
 
         UserClickedNoteContent ->
@@ -221,7 +246,7 @@ update msg model =
             ( { model | isEditingTitle = True }, focusOn titleEditorId NoOp )
 
         UserSelectedNote note ->
-            ( model |> withNote (Success <| Debug.log "UserSelectedNote" note)
+            ( model |> withNote (Success note)
             , Cmd.none
             )
 
@@ -238,12 +263,24 @@ update msg model =
             ( model
                 |> withNote Loading
                 |> withMessageToRetry (Just UserClickedDeleteButton)
-            , deleteNote noteToDelete (ServerDeletedNote noteToDelete.id)
+            , deleteNoteCmd noteToDelete (ServerDeletedNote noteToDelete.id)
             )
 
         UserToggledItem item ->
             --TODO implement
             ( model, Cmd.none )
+
+        UserClickedTodoListButton ->
+            case Debug.log "model.note" model.note of
+                Success note ->
+                    let
+                        convertedNote =
+                            Debug.log "convertedNote" <| toTodoList note
+                    in
+                    ( model |> withNote (Success convertedNote), Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 {-| displays a note in full screen
@@ -290,6 +327,7 @@ viewHeader model =
     div [ class "editor-header" ]
         [ BackButton.view UserClickedBackButton
         , viewTitle model
+        , viewTodoListButton
         , viewDeleteButton
         ]
 
@@ -315,6 +353,11 @@ viewEditableTitle title =
         , onInput UserChangedTitle
         ]
         []
+
+
+viewTodoListButton : Html Msg
+viewTodoListButton =
+    button [ onClick UserClickedTodoListButton ] [ text "Todo List" ]
 
 
 titleEditorId : String

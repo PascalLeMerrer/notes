@@ -1,4 +1,4 @@
-module Data.Note exposing (Content(..), Item, Note, decoder, empty, encode, listDecoder)
+module Data.Note exposing (Content(..), Item, Note, decoder, empty, encode, listDecoder, toTodoList)
 
 import Json.Decode as Decode exposing (Decoder, fail, oneOf, succeed)
 import Json.Decode.Pipeline exposing (optional, required, resolve)
@@ -11,6 +11,11 @@ type alias Note =
     , content : Content
     , order : Int
     }
+
+
+withContent : Content -> Note -> Note
+withContent content note =
+    { note | content = content }
 
 
 type Content
@@ -149,3 +154,23 @@ encodeType content =
 
         Empty ->
             Json.Encode.string "Empty"
+
+
+toTodoList : Note -> Note
+toTodoList note =
+    case note.content of
+        TodoList _ ->
+            note
+
+        Text text ->
+            let
+                newContent =
+                    text
+                        |> String.lines
+                        |> List.map (\line -> { checked = False, text = line })
+                        |> TodoList
+            in
+            note |> withContent newContent
+
+        Empty ->
+            note |> withContent (TodoList [])

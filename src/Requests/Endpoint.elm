@@ -5,21 +5,21 @@ import RemoteData exposing (RemoteData, WebData)
 import RemoteData.Http exposing (delete, get, post, put)
 
 
-createNote : Note -> (WebData Note -> msg) -> Cmd msg
-createNote note message =
+createNoteCmd : Note -> (WebData Note -> msg) -> Cmd msg
+createNoteCmd note message =
     post "./notes" message decoder (encode note)
 
 
-updateNote : Note -> (WebData Note -> msg) -> Cmd msg
-updateNote note message =
+updateNoteCmd : Note -> (WebData Note -> msg) -> Cmd msg
+updateNoteCmd note message =
     put "./notes" message decoder (encode note)
 
 
-deleteNote : Note -> (WebData String -> msg) -> Cmd msg
-deleteNote note message =
+deleteNoteCmd : Note -> (WebData String -> msg) -> Cmd msg
+deleteNoteCmd note message =
     delete ("./notes?id=" ++ note.id) message (encode note)
 
 
-getAllNotes : (WebData (List Note) -> msg) -> Cmd msg
-getAllNotes message =
+getAllNotesCmd : (WebData (List Note) -> msg) -> Cmd msg
+getAllNotesCmd message =
     get "./notes" message listDecoder

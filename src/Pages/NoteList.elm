@@ -10,7 +10,7 @@ import Html.Styled.Events exposing (onClick)
 import List.Extra
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
-import Requests.Endpoint exposing (getAllNotes)
+import Requests.Endpoint exposing (getAllNotesCmd)
 import Utils.Html exposing (noContent)
 import Utils.Http exposing (errorToString)
 
@@ -80,7 +80,7 @@ update msg model =
     case msg of
         UserClickedRetry ->
             ( model |> withNotes Loading
-            , getAllNotes ServerReturnedNoteList
+            , getAllNotesCmd ServerReturnedNoteList
             )
 
         MessageToastChanged updatedMessageToast ->
