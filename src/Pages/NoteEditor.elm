@@ -316,7 +316,7 @@ view model =
 
 viewNote : Model -> Html Msg
 viewNote model =
-    div []
+    div [ class "editor-note" ]
         [ viewHeader model
         , viewContent model
         ]

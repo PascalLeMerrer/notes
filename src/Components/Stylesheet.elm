@@ -93,6 +93,14 @@ classes =
     , class "editor-item"
         [ cursor pointer
         ]
+    , class "editor-note"
+        [ alignItems stretch
+        , displayFlex
+        , flex (num 1)
+        , flexDirection column
+        , height (pct 100)
+        , justifyContent flexStart
+        ]
     , class "textEditor"
         [ displayFlex
         , flexDirection column
