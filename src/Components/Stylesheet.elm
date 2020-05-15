@@ -14,28 +14,16 @@ all =
 
 classes : List Snippet
 classes =
-    [ class "body"
+    [ class "backButton"
+        [ cursor pointer
+        ]
+    , class "body"
         [ alignItems stretch
         , displayFlex
         , flexDirection column
         , fontFamilies [ "Verdana", "Arial" ]
         , height (pct 100)
         , justifyContent flexStart
-        ]
-    , class "main"
-        [ alignItems stretch
-        , displayFlex
-        , flex (num 1)
-        , flexDirection column
-        , height (pct 100)
-        , justifyContent flexStart
-        ]
-    , class "main-notelist"
-        [ flex (num 1)
-        ]
-    , class "main-notelist-spinner"
-        [ displayFlex
-        , flex (num 1)
         ]
     , class "card"
         [ border3 (px 1) solid darkerGrey
@@ -45,6 +33,11 @@ classes =
         ]
     , class "card-item"
         [ cursor pointer
+        ]
+    , class "deleteButton"
+        [ cursor pointer
+        , marginLeft (px 20)
+        , marginRight (px 20)
         ]
     , class "editor"
         [ alignItems stretch
@@ -65,6 +58,36 @@ classes =
         , justifyContent flexStart
         , marginBottom (px 10)
         , displayFlex
+        ]
+    , class "editor-item"
+        [ cursor pointer
+        ]
+    , class "editor-note"
+        [ alignItems stretch
+        , displayFlex
+        , flex (num 1)
+        , flexDirection column
+        , height (pct 100)
+        , justifyContent flexStart
+        ]
+    , class "editor-text-readonly"
+        [ alignItems stretch
+        , cursor pointer
+        , displayFlex
+        , flex (num 1)
+        , flexDirection column
+        , height (pct 100)
+        , justifyContent flexStart
+        ]
+    , class "editor-text-placeholder"
+        [ alignItems stretch
+        , color averageGrey
+        , cursor pointer
+        , displayFlex
+        , flex (num 1)
+        , flexDirection column
+        , height (pct 100)
+        , justifyContent flexStart
         ]
     , class "editor-title-input"
         [ fontSize (rem 1)
@@ -90,10 +113,7 @@ classes =
         , displayFlex
         , flexGrow (num 1)
         ]
-    , class "editor-item"
-        [ cursor pointer
-        ]
-    , class "editor-note"
+    , class "main"
         [ alignItems stretch
         , displayFlex
         , flex (num 1)
@@ -101,45 +121,12 @@ classes =
         , height (pct 100)
         , justifyContent flexStart
         ]
-    , class "textEditor"
+    , class "main-notelist"
+        [ flex (num 1)
+        ]
+    , class "main-notelist-spinner"
         [ displayFlex
-        , flexDirection column
-        , justifyContent flexStart
-        , height (pct 100)
-        , alignItems stretch
-        ]
-    , class "textEditor-textarea"
-        [ flexGrow (num 1)
-        , fontFamilies [ "Verdana", "Arial" ]
-        , fontSize (rem 1)
-        , padding (px 5)
-        ]
-    , class "editor-text-readonly"
-        [ alignItems stretch
-        , cursor pointer
-        , displayFlex
         , flex (num 1)
-        , flexDirection column
-        , height (pct 100)
-        , justifyContent flexStart
-        ]
-    , class "editor-text-placeholder"
-        [ alignItems stretch
-        , color averageGrey
-        , cursor pointer
-        , displayFlex
-        , flex (num 1)
-        , flexDirection column
-        , height (pct 100)
-        , justifyContent flexStart
-        ]
-    , class "deleteButton"
-        [ cursor pointer
-        , marginLeft (px 20)
-        , marginRight (px 20)
-        ]
-    , class "backButton"
-        [ cursor pointer
         ]
     , class "plusButton"
         [ bottom (px 0)
@@ -177,5 +164,18 @@ classes =
         , flexDirection column
         , justifyContent center
         , flex (num 1)
+        ]
+    , class "textEditor"
+        [ displayFlex
+        , flexDirection column
+        , justifyContent flexStart
+        , height (pct 100)
+        , alignItems stretch
+        ]
+    , class "textEditor-textarea"
+        [ flexGrow (num 1)
+        , fontFamilies [ "Verdana", "Arial" ]
+        , fontSize (rem 1)
+        , padding (px 5)
         ]
     ]
