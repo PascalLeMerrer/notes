@@ -1,7 +1,7 @@
 module Components.Stylesheet exposing (all)
 
-import Components.Colors exposing (averageGreen, averageGrey, darkerGrey, lightGreen, white)
-import Css exposing (Style, alignItems, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, displayFlex, em, fixed, flex, flexDirection, flexGrow, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, margin, marginBottom, marginLeft, marginRight, marginTop, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, rem, right, row, solid, stretch, transform, translate2)
+import Components.Colors exposing (averageGreen, averageGrey, darkerGrey, lightGreen, lightGrey, white)
+import Css exposing (Style, alignItems, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, displayFlex, em, fixed, flex, flexDirection, flexGrow, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, lineThrough, margin, marginBottom, marginLeft, marginRight, marginTop, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, rem, right, row, solid, stretch, textDecoration, transform, translate2)
 import Css.Global exposing (Snippet, class, global)
 import Html.Styled
 
@@ -61,6 +61,21 @@ classes =
         ]
     , class "editor-item"
         [ cursor pointer
+        , displayFlex
+        , flexDirection row
+        , alignItems center
+        , marginTop (em 0.5)
+        , marginBottom (em 0.5)
+        ]
+    , class "editor-item-checked"
+        [ cursor pointer
+        , displayFlex
+        , flexDirection row
+        , alignItems center
+        , marginTop (em 0.5)
+        , marginBottom (em 0.5)
+        , color lightGrey
+        , textDecoration lineThrough
         ]
     , class "editor-note"
         [ alignItems stretch
@@ -116,6 +131,9 @@ classes =
         , marginRight (px 10)
         , displayFlex
         , flexGrow (num 1)
+        ]
+    , class "item-checkbox"
+        [ marginRight (em 1)
         ]
     , class "main"
         [ alignItems stretch

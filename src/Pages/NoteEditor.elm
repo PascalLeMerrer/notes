@@ -442,16 +442,16 @@ viewItem item =
     let
         className =
             if item.checked then
-                "checked-item"
+                "editor-item-checked"
 
             else
-                ""
+                "editor-item"
     in
     div [ class className ]
         [ input
             [ type_ "checkbox"
-            , class "editor-item"
             , checked item.checked
+            , class "item-checkbox"
             , onClick (UserToggledItem item)
             ]
             []
