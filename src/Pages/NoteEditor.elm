@@ -4,6 +4,8 @@ import Components.BackButton as BackButton
 import Components.DeleteButton as DeleteButton
 import Components.Retry as Retry
 import Components.Spinner as Spinner
+import Components.TextIcon as TextIcon
+import Components.TodoListIcon as TodoListButton
 import Data.Note as Note exposing (Content(..), Item, Note, toText, toTodoList)
 import Html.Attributes
 import Html.Styled exposing (Html, button, div, fromUnstyled, h2, input, p, text, textarea)
@@ -371,12 +373,24 @@ viewEditableTitle title =
 
 viewTextButton : Html Msg
 viewTextButton =
-    button [ onClick UserClickedTextButton ] [ text "Text" ]
+    button
+        [ class "header-button"
+        , onClick UserClickedTextButton
+        ]
+        [ TextIcon.view
+        , text "Text"
+        ]
 
 
 viewTodoListButton : Html Msg
 viewTodoListButton =
-    button [ onClick UserClickedTodoListButton ] [ text "Todo List" ]
+    button
+        [ class "header-button"
+        , onClick UserClickedTodoListButton
+        ]
+        [ TodoListButton.view
+        , text "Todo List"
+        ]
 
 
 titleEditorId : String

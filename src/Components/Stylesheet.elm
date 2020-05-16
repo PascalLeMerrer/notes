@@ -1,7 +1,7 @@
 module Components.Stylesheet exposing (all)
 
 import Components.Colors exposing (averageGreen, averageGrey, darkerGrey, lightGreen, lightGrey, white)
-import Css exposing (Style, alignItems, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, displayFlex, em, fixed, flex, flexDirection, flexGrow, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, lineThrough, margin, marginBottom, marginLeft, marginRight, marginTop, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, rem, right, row, solid, stretch, textDecoration, transform, translate2)
+import Css exposing (Style, alignItems, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, displayFlex, em, fixed, flex, flexDirection, flexGrow, flexStart, fontFamilies, fontSize, fontWeight, height, justifyContent, lineThrough, margin, marginBottom, marginLeft, marginRight, marginTop, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, rem, right, row, solid, spaceBetween, stretch, textDecoration, transform, translate2)
 import Css.Global exposing (Snippet, class, global)
 import Html.Styled
 
@@ -132,6 +132,20 @@ classes =
         , displayFlex
         , flexGrow (num 1)
         ]
+    , class "header-button"
+        [ alignItems center
+        , borderRadius (px 5)
+        , displayFlex
+        , flexDirection row
+        , fontSize (rem 1)
+        , justifyContent spaceBetween
+        , paddingTop (px 5)
+        , paddingBottom (px 5)
+        , paddingLeft (px 10)
+        , paddingRight (px 10)
+        ]
+    , class "button-icon"
+        [ paddingRight (px 10) ]
     , class "item-checkbox"
         [ marginRight (em 1)
         ]

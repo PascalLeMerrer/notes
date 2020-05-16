@@ -1,6 +1,6 @@
 module Components.BackButton exposing (view)
 
-import Color exposing (black)
+import Color exposing (charcoal)
 import Html.Styled exposing (Html, fromUnstyled)
 import TypedSvg as Svg exposing (g, path)
 import TypedSvg.Attributes exposing (class, fill, viewBox)
@@ -21,7 +21,7 @@ view message =
         [ g []
             [ path
                 [ TypedSvg.Attributes.d svgPath
-                , fill <| Paint black
+                , fill <| Paint charcoal
                 ]
                 []
             ]
