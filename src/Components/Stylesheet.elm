@@ -149,6 +149,10 @@ classes =
     , class "item-checkbox"
         [ marginRight (em 1)
         ]
+    , class "item-input"
+        [ fontSize (rem 1)
+        , flexGrow (num 1)
+        ]
     , class "main"
         [ alignItems stretch
         , displayFlex

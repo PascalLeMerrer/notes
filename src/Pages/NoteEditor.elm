@@ -8,7 +8,7 @@ import Components.TextIcon as TextIcon
 import Components.TodoListIcon as TodoListButton
 import Data.Note as Note exposing (Content(..), Item, Note, toText, toTodoList)
 import Html.Attributes
-import Html.Styled exposing (Html, button, div, fromUnstyled, h2, input, p, text, textarea)
+import Html.Styled exposing (Html, button, div, fromUnstyled, h2, input, p, span, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, id, type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
 import List.Extra
@@ -25,13 +25,15 @@ type Msg
     | ServerDeletedNote String (WebData String)
     | ServerSavedNewNote (WebData Note)
     | ServerSavedNote (WebData Note)
+    | UserChangedContent String
+    | UserChangedItemText String
+    | UserChangedTitle String
     | UserClickedBackButton
+    | UserClickedItemText Item
     | UserClickedTextButton
     | UserClickedTodoListButton
     | UserClickedNoteContent
     | UserClickedNoteTitle
-    | UserChangedContent String
-    | UserChangedTitle String
     | UserClickedDeleteButton
     | UserSelectedNote Note
     | UserToggledItem Item
@@ -43,6 +45,7 @@ type Msg
 
 type alias Model =
     { content : Content
+    , editedItem : Maybe Item
     , id : String
     , isEditingContent : Bool
     , isEditingTitle : Bool
@@ -58,6 +61,11 @@ withContent : Content -> Model -> Model
 withContent content model =
     { model | content = content }
         |> updateNote
+
+
+withEditedItem : Maybe Item -> Model -> Model
+withEditedItem editedItem model =
+    { model | editedItem = editedItem }
 
 
 withId : String -> Model -> Model
@@ -126,6 +134,7 @@ withMessageToast messageToast model =
 init : Model
 init =
     { content = Empty
+    , editedItem = Nothing
     , id = ""
     , isEditingContent = False
     , isEditingTitle = False
@@ -212,6 +221,23 @@ update msg model =
                 , Cmd.none
                 )
 
+        UserChangedItemText string ->
+            case model.editedItem of
+                Just editedItem ->
+                    let
+                        updatedItem =
+                            { editedItem | text = string }
+
+                        updatedModel =
+                            model |> withEditedItem (Just updatedItem)
+                    in
+                    ( updateItemInContent updatedModel updatedItem
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
         UserChangedTitle string ->
             ( model
                 |> withTitle string
@@ -246,14 +272,6 @@ update msg model =
         UserClickedNoteContent ->
             ( { model | isEditingContent = True }, focusOn textEditorId NoOp )
 
-        UserClickedNoteTitle ->
-            ( { model | isEditingTitle = True }, focusOn titleEditorId NoOp )
-
-        UserSelectedNote note ->
-            ( model |> withNote (Success note)
-            , Cmd.none
-            )
-
         UserClickedDeleteButton ->
             let
                 noteToDelete =
@@ -270,27 +288,46 @@ update msg model =
             , deleteNoteCmd noteToDelete (ServerDeletedNote noteToDelete.id)
             )
 
-        UserToggledItem item ->
-            let
-                updatedItem =
-                    { item | checked = not item.checked }
+        UserClickedItemText item ->
+            ( { model | editedItem = Just item }, Cmd.none )
 
-                updatedContent =
-                    case model.content of
-                        TodoList items ->
-                            List.Extra.setIf (\it -> it.order == updatedItem.order) updatedItem items
-                                |> TodoList
-
-                        _ ->
-                            model.content
-            in
-            ( model |> withContent updatedContent, Cmd.none )
+        UserClickedNoteTitle ->
+            ( { model | isEditingTitle = True }, focusOn titleEditorId NoOp )
 
         UserClickedTextButton ->
             convert model toText
 
         UserClickedTodoListButton ->
             convert model toTodoList
+
+        UserSelectedNote note ->
+            ( model |> withNote (Success note)
+            , Cmd.none
+            )
+
+        UserToggledItem item ->
+            let
+                updatedItem =
+                    { item | checked = not item.checked }
+            in
+            ( updateItemInContent model updatedItem
+            , Cmd.none
+            )
+
+
+updateItemInContent : Model -> Item -> Model
+updateItemInContent model item =
+    case model.content of
+        TodoList items ->
+            let
+                content =
+                    List.Extra.setIf (\it -> it.order == item.order) item items
+                        |> TodoList
+            in
+            model |> withContent content
+
+        _ ->
+            model
 
 
 convert : Model -> (Note -> Note) -> ( Model, Cmd Msg )
@@ -433,7 +470,7 @@ viewContent : Model -> Html Msg
 viewContent model =
     case model.content of
         Note.TodoList items ->
-            viewItems items
+            viewItems model items
 
         Note.Text text ->
             viewText model text
@@ -442,12 +479,12 @@ viewContent model =
             viewText model ""
 
 
-viewItems : List Item -> Html Msg
-viewItems items =
+viewItems : Model -> List Item -> Html Msg
+viewItems model items =
     items
         |> List.sortWith checkedComparison
         |> List.sortWith descendingOrder
-        |> List.map viewItem
+        |> List.map (viewItem model)
         |> div []
 
 
@@ -477,8 +514,8 @@ descendingOrder a b =
 
 {-| TODO: move in a dedicated module in order to share with noteList?
 -}
-viewItem : Item -> Html Msg
-viewItem item =
+viewItem : Model -> Item -> Html Msg
+viewItem model item =
     let
         className =
             if item.checked then
@@ -495,8 +532,42 @@ viewItem item =
             , onClick (UserToggledItem item)
             ]
             []
-        , text item.text
+        , viewItemText model item
         ]
+
+
+viewItemText : Model -> Item -> Html Msg
+viewItemText model item =
+    case model.editedItem of
+        Just editedItem ->
+            if item.order == editedItem.order then
+                viewEditedItemText editedItem
+
+            else
+                viewReadonlyItemText item
+
+        Nothing ->
+            viewReadonlyItemText item
+
+
+viewReadonlyItemText : Item -> Html Msg
+viewReadonlyItemText item =
+    span [ onClick (UserClickedItemText item) ] [ text item.text ]
+
+
+viewEditedItemText : Item -> Html Msg
+viewEditedItemText item =
+    input
+        [ class "item-input"
+        , type_ "text"
+        , onInput UserChangedItemText
+        , value item.text
+        ]
+        []
+
+
+
+-- Display note text content
 
 
 viewText : Model -> String -> Html Msg
@@ -549,6 +620,10 @@ viewTextPlaceholder =
         , onClick UserClickedNoteContent
         ]
         [ text "Texte" ]
+
+
+
+--
 
 
 viewDeleteButton : Html Msg
