@@ -11,6 +11,7 @@ import Html.Attributes
 import Html.Styled exposing (Html, button, div, fromUnstyled, h2, input, p, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, id, type_, value)
 import Html.Styled.Events exposing (onClick, onInput)
+import List.Extra
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
 import Requests.Endpoint exposing (createNoteCmd, deleteNoteCmd, updateNoteCmd)
@@ -270,8 +271,20 @@ update msg model =
             )
 
         UserToggledItem item ->
-            --TODO implement
-            ( model, Cmd.none )
+            let
+                updatedItem =
+                    { item | checked = not item.checked }
+
+                updatedContent =
+                    case model.content of
+                        TodoList items ->
+                            List.Extra.setIf (\it -> it.order == updatedItem.order) updatedItem items
+                                |> TodoList
+
+                        _ ->
+                            model.content
+            in
+            ( model |> withContent updatedContent, Cmd.none )
 
         UserClickedTextButton ->
             convert model toText
