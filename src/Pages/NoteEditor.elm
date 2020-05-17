@@ -44,6 +44,7 @@ type Msg
 type Key
     = Backspace
     | Enter
+    | Escape
     | Other
 
 
@@ -330,6 +331,12 @@ update msg model =
                 Enter ->
                     ( model
                         |> addItem
+                    , Cmd.none
+                    )
+
+                Escape ->
+                    ( model
+                        |> withEditedItem Nothing
                     , Cmd.none
                     )
 
@@ -672,6 +679,9 @@ onKeyDown msgConstructor =
 
                     13 ->
                         msgConstructor Enter
+
+                    27 ->
+                        msgConstructor Escape
 
                     _ ->
                         msgConstructor Other
