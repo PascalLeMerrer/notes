@@ -8,9 +8,10 @@ import Components.TextIcon as TextIcon
 import Components.TodoListIcon as TodoListButton
 import Data.Note as Note exposing (Content(..), Item, Note, toText, toTodoList)
 import Html.Attributes
-import Html.Styled exposing (Html, button, div, fromUnstyled, h2, input, p, span, text, textarea)
+import Html.Styled exposing (Attribute, Html, button, div, fromUnstyled, h2, input, p, span, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, id, type_, value)
-import Html.Styled.Events exposing (onClick, onInput)
+import Html.Styled.Events exposing (keyCode, on, onClick, onInput)
+import Json.Decode
 import List.Extra
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
@@ -35,8 +36,15 @@ type Msg
     | UserClickedNoteContent
     | UserClickedNoteTitle
     | UserClickedDeleteButton
+    | UserPressedKey Key
     | UserSelectedNote Note
     | UserToggledItem Item
+
+
+type Key
+    = Backspace
+    | Enter
+    | Other
 
 
 
@@ -314,6 +322,24 @@ update msg model =
             , Cmd.none
             )
 
+        UserPressedKey key ->
+            case key of
+                Backspace ->
+                    let
+                        _ =
+                            Debug.log "Backspace pressed" model.editedItem
+                    in
+                    ( model, Cmd.none )
+
+                Enter ->
+                    ( model
+                        |> addItem
+                    , Cmd.none
+                    )
+
+                Other ->
+                    ( model, Cmd.none )
+
 
 updateItemInContent : Model -> Item -> Model
 updateItemInContent model item =
@@ -342,6 +368,44 @@ convert model converter =
 
         _ ->
             ( model, Cmd.none )
+
+
+addItem : Model -> Model
+addItem model =
+    case model.editedItem of
+        Nothing ->
+            -- TODO: this is probably the case of creating a first item to an empty note
+            model
+
+        Just editedItem ->
+            let
+                newItem =
+                    { checked = False
+                    , order = editedItem.order
+                    , text = ""
+                    }
+
+                updatedItems =
+                    case model.content of
+                        TodoList items ->
+                            items
+                                |> List.map
+                                    (\it ->
+                                        if it.order >= editedItem.order then
+                                            { it | order = it.order + 1 }
+
+                                        else
+                                            it
+                                    )
+                                |> (::) newItem
+
+                        _ ->
+                            -- impossible case; would mean there is an editedItem when the items list is empty
+                            [ newItem ]
+            in
+            model
+                |> withContent (TodoList updatedItems)
+                |> withEditedItem (Just newItem)
 
 
 {-| displays a note in full screen
@@ -561,13 +625,29 @@ viewEditedItemText item =
         [ class "item-input"
         , type_ "text"
         , onInput UserChangedItemText
+        , onKeyUp UserPressedKey
         , value item.text
         ]
         []
 
 
+onKeyUp : (Key -> Msg) -> Attribute Msg
+onKeyUp msgConstructor =
+    on "keyup"
+        (Json.Decode.map
+            (\code ->
+                case code of
+                    8 ->
+                        msgConstructor Backspace
 
--- Display note text content
+                    13 ->
+                        msgConstructor Enter
+
+                    _ ->
+                        msgConstructor Other
+            )
+            keyCode
+        )
 
 
 viewText : Model -> String -> Html Msg
