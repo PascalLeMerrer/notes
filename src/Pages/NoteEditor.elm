@@ -325,11 +325,7 @@ update msg model =
         UserPressedKey key ->
             case key of
                 Backspace ->
-                    let
-                        _ =
-                            Debug.log "Backspace pressed" model.editedItem
-                    in
-                    ( model, Cmd.none )
+                    ( removeEditedItemIfEmpty model, Cmd.none )
 
                 Enter ->
                     ( model
@@ -406,6 +402,40 @@ addItem model =
             model
                 |> withContent (TodoList updatedItems)
                 |> withEditedItem (Just newItem)
+
+
+removeEditedItemIfEmpty : Model -> Model
+removeEditedItemIfEmpty model =
+    case model.editedItem of
+        Just editedItem ->
+            let
+                updatedContent =
+                    if String.isEmpty editedItem.text then
+                        case model.content of
+                            TodoList items ->
+                                items
+                                    |> List.filter (\item -> item.order /= editedItem.order)
+                                    |> TodoList
+
+                            _ ->
+                                model.content
+
+                    else
+                        model.content
+
+                updatedEditedItem =
+                    if String.isEmpty editedItem.text then
+                        Nothing
+
+                    else
+                        model.editedItem
+            in
+            model
+                |> withContent updatedContent
+                |> withEditedItem updatedEditedItem
+
+        Nothing ->
+            model
 
 
 {-| displays a note in full screen
@@ -624,16 +654,16 @@ viewEditedItemText item =
     input
         [ class "item-input"
         , type_ "text"
+        , onKeyDown UserPressedKey
         , onInput UserChangedItemText
-        , onKeyUp UserPressedKey
         , value item.text
         ]
         []
 
 
-onKeyUp : (Key -> Msg) -> Attribute Msg
-onKeyUp msgConstructor =
-    on "keyup"
+onKeyDown : (Key -> Msg) -> Attribute Msg
+onKeyDown msgConstructor =
+    on "keydown"
         (Json.Decode.map
             (\code ->
                 case code of
