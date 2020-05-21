@@ -408,30 +408,7 @@ addItem : Model -> Model
 addItem model =
     case model.editedItem of
         Nothing ->
-            -- this is the case of creating a first item in an empty note
-            --let
-            --    updatedContent =
-            --        case model.content of
-            --            TodoList items ->
-            --                let
-            --                    firstItemOrder =
-            --                        List.head items
-            --                            |> Maybe.map .order
-            --                            |> Maybe.withDefault 0
-            --
-            --                    newItem =
-            --                        { checked = False
-            --                        , order = firstItemOrder + 1
-            --                        , text = ""
-            --                        }
-            --                in
-            --                TodoList (newItem :: items)
-            --
-            --            _ ->
-            --                model.content
-            --in
-            --model |> withContent updatedContent
-            Debug.todo "probably will never occurs. Should return model"
+            model
 
         Just editedItem ->
             let
