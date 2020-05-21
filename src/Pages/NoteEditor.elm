@@ -608,39 +608,25 @@ viewContent model =
 
 viewItems : Model -> List Item -> Html Msg
 viewItems model items =
+    let
+        ( checkedItems, uncheckedItems ) =
+            items
+                |> List.partition .checked
+    in
+    div []
+        (viewSortedItems model uncheckedItems
+            ++ viewSortedItems model checkedItems
+        )
+
+
+viewSortedItems : Model -> List Item -> List (Html Msg)
+viewSortedItems model items =
     items
-        |> List.sortWith checkedComparison
-        |> List.sortWith descendingOrder
+        |> List.sortBy .order
+        |> List.reverse
         |> List.map (viewItem model)
-        |> div []
 
 
-checkedComparison : Item -> Item -> Order
-checkedComparison a b =
-    if a.checked && not b.checked then
-        GT
-
-    else if b.checked && not a.checked then
-        LT
-
-    else
-        EQ
-
-
-descendingOrder : Item -> Item -> Order
-descendingOrder a b =
-    if a.order < b.order then
-        GT
-
-    else if b.order > a.order then
-        LT
-
-    else
-        EQ
-
-
-{-| TODO: move in a dedicated module in order to share with noteList?
--}
 viewItem : Model -> Item -> Html Msg
 viewItem model item =
     let
