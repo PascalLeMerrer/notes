@@ -9,9 +9,9 @@ import Components.TextIcon as TextIcon
 import Components.TodoListIcon as TodoListButton
 import Data.Note as Note exposing (Content(..), Item, Note, toText, toTodoList)
 import Html.Attributes
-import Html.Styled exposing (Attribute, Html, button, div, fromUnstyled, h2, input, p, span, text, textarea)
+import Html.Styled exposing (Attribute, Html, button, div, form, fromUnstyled, h2, input, p, span, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, id, type_, value)
-import Html.Styled.Events exposing (keyCode, on, onClick, onInput)
+import Html.Styled.Events exposing (keyCode, on, onClick, onInput, onSubmit)
 import Json.Decode
 import List.Extra
 import MessageToast exposing (MessageToast)
@@ -41,6 +41,7 @@ type Msg
     | UserPressedKey Key
     | UserSelectedNote Note
     | UserToggledItem Item
+    | UserValidatedTitle
 
 
 type Key
@@ -351,6 +352,9 @@ update msg model =
                 Other ->
                     ( model, Cmd.none )
 
+        UserValidatedTitle ->
+            ( { model | isEditingTitle = False }, Cmd.none )
+
 
 updateItemInContent : Model -> Item -> Model
 updateItemInContent model item =
@@ -560,13 +564,18 @@ viewTitle model =
 
 viewEditableTitle : String -> Html Msg
 viewEditableTitle title =
-    input
-        [ id titleEditorId
-        , class titleEditorId
-        , value title
-        , onInput UserChangedTitle
+    form
+        [ class "title-form"
+        , onSubmit UserValidatedTitle
         ]
-        []
+        [ input
+            [ id titleEditorId
+            , class titleEditorId
+            , value title
+            , onInput UserChangedTitle
+            ]
+            []
+        ]
 
 
 viewTextButton : Html Msg
@@ -593,7 +602,7 @@ viewTodoListButton =
 
 titleEditorId : String
 titleEditorId =
-    "editor-title-input"
+    "title-input"
 
 
 viewReadOnlyTitle : String -> Html Msg

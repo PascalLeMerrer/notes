@@ -129,15 +129,6 @@ classes =
         , height (pct 100)
         , justifyContent flexStart
         ]
-    , class "editor-title-input"
-        [ fontSize (rem 1)
-        , fontWeight bold
-        , marginLeft (px 6)
-        , marginTop (px 16)
-        , marginBottom (px 16)
-        , displayFlex
-        , flexGrow (num 1)
-        ]
     , class "editor-title-readonly"
         [ cursor pointer
         , displayFlex
@@ -261,5 +252,16 @@ classes =
         , fontFamilies [ "Verdana", "Arial" ]
         , fontSize (rem 1)
         , padding (px 5)
+        ]
+    , class "title-form"
+        [ displayFlex
+        , flexDirection row
+        , flexGrow (num 1)
+        ]
+    , class "title-input"
+        [ fontSize (rem 1.5)
+        , fontWeight bold
+        , flexGrow (num 1)
+        , margin (px 16)
         ]
     ]
