@@ -54,6 +54,9 @@ classes =
         , marginLeft (px 20)
         , marginRight (px 20)
         ]
+    , class "draghandle"
+        [ marginLeft (px 20)
+        ]
     , class "editor"
         [ alignItems stretch
         , cursor pointer
@@ -164,7 +167,8 @@ classes =
         , paddingRight (px 10)
         ]
     , class "item-checkbox"
-        [ marginRight (em 1)
+        [ marginLeft (px 20)
+        , marginRight (px 20)
         ]
     , class "item-input"
         [ fontSize (rem 1)

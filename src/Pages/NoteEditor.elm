@@ -2,6 +2,7 @@ module Pages.NoteEditor exposing (Model, Msg(..), init, subscriptions, update, v
 
 import Components.BackButton as BackButton
 import Components.DeleteButton as DeleteButton
+import Components.DragHandle as DragHandle
 import Components.Retry as Retry
 import Components.Spinner as Spinner
 import Components.TextIcon as TextIcon
@@ -16,7 +17,7 @@ import List.Extra
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
 import Requests.Endpoint exposing (createNoteCmd, deleteNoteCmd, updateNoteCmd)
-import Utils.Html exposing (focusOn, noContent)
+import Utils.Html exposing (focusOn, noContent, viewIf)
 import Utils.Http exposing (errorToString)
 
 
@@ -658,7 +659,8 @@ viewItem model item =
                 "editor-item"
     in
     div [ class className ]
-        [ input
+        [ viewIf (not item.checked) DragHandle.view
+        , input
             [ type_ "checkbox"
             , checked item.checked
             , class "item-checkbox"
