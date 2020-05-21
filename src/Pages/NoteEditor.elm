@@ -575,7 +575,7 @@ viewTextButton =
         , onClick UserClickedTextButton
         ]
         [ TextIcon.view
-        , text "Text"
+        , span [ class "button-text" ] [ text "Text" ]
         ]
 
 
@@ -586,7 +586,7 @@ viewTodoListButton =
         , onClick UserClickedTodoListButton
         ]
         [ TodoListButton.view
-        , text "Todo List"
+        , span [ class "button-text" ] [ text "Todo List" ]
         ]
 
 
