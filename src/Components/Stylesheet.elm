@@ -1,7 +1,7 @@
 module Components.Stylesheet exposing (all)
 
 import Components.Colors exposing (averageGreen, averageGrey, darkerGrey, lightGreen, lightGrey, white)
-import Css exposing (Style, alignItems, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, display, displayFlex, em, fixed, flex, flexDirection, flexGrow, flexStart, fontFamilies, fontSize, fontStyle, fontWeight, height, italic, justifyContent, lineThrough, margin, marginBottom, marginLeft, marginRight, marginTop, none, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, rem, right, row, solid, spaceBetween, stretch, textDecoration, transform, translate2)
+import Css exposing (Style, alignItems, alignSelf, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, display, displayFlex, em, fixed, flex, flexDirection, flexGrow, flexStart, fontFamilies, fontSize, fontStyle, fontWeight, height, italic, justifyContent, lineThrough, margin, marginBottom, marginLeft, marginRight, marginTop, maxWidth, none, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, rem, right, row, solid, spaceBetween, stretch, textDecoration, transform, translate2)
 import Css.Global exposing (Snippet, class, global)
 import Css.Media exposing (only, screen, withMedia)
 import Html.Styled
@@ -43,6 +43,7 @@ classes =
         [ border3 (px 1) solid darkerGrey
         , cursor pointer
         , margin (px 5)
+        , maxWidth computerBreakpoint
         , padding (px 5)
         ]
     , class "card-item"
@@ -57,13 +58,16 @@ classes =
         [ alignItems stretch
         , cursor pointer
         , displayFlex
-        , flex (num 1)
         , flexDirection column
         , height (pct 100)
         , justifyContent flexStart
         , margin (px 5)
         , padding (px 5)
         , border3 (px 1) solid darkerGrey
+        , withMedia [ only screen [ Css.Media.minWidth computerBreakpoint ] ]
+            [ marginLeft (pct 25)
+            , marginRight (pct 25)
+            ]
         ]
     , class "editor-header"
         [ alignItems center
