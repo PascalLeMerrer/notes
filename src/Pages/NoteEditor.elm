@@ -336,14 +336,10 @@ update msg model =
                     ( removeEditedItemIfEmpty model, Cmd.none )
 
                 Enter ->
-                    ( model
-                        |> addItem
-                    , Cmd.none
-                    )
+                    model |> addItem
 
                 Escape ->
-                    ( model
-                        |> withEditedItem Nothing
+                    ( model |> withEditedItem Nothing
                     , Cmd.none
                     )
 
@@ -402,13 +398,11 @@ addItemToEmptyTodoList model =
     )
 
 
-{-| TODO: split into smaller functions
--}
-addItem : Model -> Model
+addItem : Model -> ( Model, Cmd Msg )
 addItem model =
     case model.editedItem of
         Nothing ->
-            model
+            ( model, Cmd.none )
 
         Just editedItem ->
             let
@@ -436,9 +430,11 @@ addItem model =
                             -- impossible case; would mean there is an editedItem when the items list is empty
                             [ newItem ]
             in
-            model
+            ( model
                 |> withContent (TodoList updatedItems)
                 |> withEditedItem (Just newItem)
+            , focusOn (itemId newItem) NoOp
+            )
 
 
 removeEditedItemIfEmpty : Model -> Model
