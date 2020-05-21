@@ -35,7 +35,8 @@ type Msg
     | UserClickedTodoListButton
     | UserClickedNoteContent
     | UserClickedNoteTitle
-    | UserClickedDeleteButton
+    | UserClickedItemDeleteButton Item
+    | UserClickedNoteDeleteButton
     | UserPressedKey Key
     | UserSelectedNote Note
     | UserToggledItem Item
@@ -278,10 +279,16 @@ update msg model =
                 , updateNoteCmd note ServerSavedNote
                 )
 
+        UserClickedItemDeleteButton item ->
+            ( model |> removeItem item, Cmd.none )
+
+        UserClickedItemText item ->
+            ( { model | editedItem = Just item }, Cmd.none )
+
         UserClickedNoteContent ->
             ( { model | isEditingContent = True }, focusOn textEditorId NoOp )
 
-        UserClickedDeleteButton ->
+        UserClickedNoteDeleteButton ->
             let
                 noteToDelete =
                     -- there is no need to send title and content, the server just needs the note Id
@@ -293,12 +300,9 @@ update msg model =
             in
             ( model
                 |> withNote Loading
-                |> withMessageToRetry (Just UserClickedDeleteButton)
+                |> withMessageToRetry (Just UserClickedNoteDeleteButton)
             , deleteNoteCmd noteToDelete (ServerDeletedNote noteToDelete.id)
             )
-
-        UserClickedItemText item ->
-            ( { model | editedItem = Just item }, Cmd.none )
 
         UserClickedNoteTitle ->
             ( { model | isEditingTitle = True }, focusOn titleEditorId NoOp )
@@ -435,6 +439,22 @@ addItem model =
                 |> withEditedItem (Just newItem)
             , focusOn (itemId newItem) NoOp
             )
+
+
+removeItem : Item -> Model -> Model
+removeItem itemToRemove model =
+    let
+        updatedContent =
+            case model.content of
+                TodoList items ->
+                    items
+                        |> List.filter (\item -> item.order /= itemToRemove.order)
+                        |> TodoList
+
+                _ ->
+                    model.content
+    in
+    model |> withContent updatedContent
 
 
 removeEditedItemIfEmpty : Model -> Model
@@ -673,7 +693,9 @@ viewReadonlyItemText item =
             [ class "item-text-readonly"
             , onClick (UserClickedItemText item)
             ]
-            [ text item.text ]
+            [ text item.text
+            , DeleteButton.view (UserClickedItemDeleteButton item)
+            ]
 
 
 viewItemTextPlaceholder : Item -> Html Msg
@@ -682,20 +704,25 @@ viewItemTextPlaceholder item =
         [ class "item-text-placeholder"
         , onClick (UserClickedItemText item)
         ]
-        [ text "Click to edit" ]
+        [ text "Click to edit"
+        , DeleteButton.view (UserClickedItemDeleteButton item)
+        ]
 
 
 viewEditedItemText : Item -> Html Msg
 viewEditedItemText item =
-    input
-        [ class "item-input"
-        , id (itemId item)
-        , type_ "text"
-        , onKeyDown UserPressedKey
-        , onInput UserChangedItemText
-        , value item.text
+    div [ class "item-text-edited" ]
+        [ input
+            [ class "item-input"
+            , id (itemId item)
+            , type_ "text"
+            , onKeyDown UserPressedKey
+            , onInput UserChangedItemText
+            , value item.text
+            ]
+            []
+        , DeleteButton.view (UserClickedItemDeleteButton item)
         ]
-        []
 
 
 itemId : Item -> String
@@ -786,7 +813,7 @@ viewDeleteButton =
     div
         [ class "deleteButton"
         ]
-        [ DeleteButton.view UserClickedDeleteButton ]
+        [ DeleteButton.view UserClickedNoteDeleteButton ]
 
 
 

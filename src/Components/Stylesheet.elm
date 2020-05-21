@@ -66,16 +66,16 @@ classes =
         , displayFlex
         , flexDirection row
         , alignItems center
-        , marginTop (em 0.5)
-        , marginBottom (em 0.5)
+        , marginTop (em 0.75)
+        , marginBottom (em 0.75)
         ]
     , class "editor-item-checked"
         [ cursor pointer
         , displayFlex
         , flexDirection row
         , alignItems center
-        , marginTop (em 0.5)
-        , marginBottom (em 0.5)
+        , marginTop (em 0.75)
+        , marginBottom (em 0.75)
         , color lightGrey
         , textDecoration lineThrough
         ]
@@ -153,16 +153,29 @@ classes =
     , class "item-input"
         [ fontSize (rem 1)
         , flexGrow (num 1)
+        , marginRight (px 20)
+        ]
+    , class "item-text-edited"
+        [ alignItems center
+        , displayFlex
+        , flexGrow (num 1)
+        , justifyContent spaceBetween
+        , paddingRight (px 20)
         ]
     , class "item-text-placeholder"
         [ color averageGrey
         , displayFlex
         , fontStyle italic
         , flexGrow (num 1)
+        , justifyContent spaceBetween
+        , paddingRight (px 20)
         ]
     , class "item-text-readonly"
-        [ displayFlex
+        [ alignItems center
+        , displayFlex
         , flexGrow (num 1)
+        , justifyContent spaceBetween
+        , paddingRight (px 20)
         ]
     , class "main"
         [ alignItems stretch
