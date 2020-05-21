@@ -3,8 +3,7 @@ module Pages.NoteList exposing (..)
 import Components.Retry as Retry
 import Components.Spinner as Spinner
 import Data.Note as Note exposing (Content(..), Note)
-import Fixtures exposing (todoBuyingList)
-import Html.Styled exposing (Html, button, div, fromUnstyled, h2, input, p, text)
+import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text)
 import Html.Styled.Attributes exposing (checked, class, type_)
 import Html.Styled.Events exposing (onClick)
 import List.Extra
@@ -64,10 +63,9 @@ allNotes model =
 init : ( Model, Cmd Msg )
 init =
     ( { messageToast = MessageToast.init MessageToastChanged
-      , notes = Success [ todoBuyingList ]
+      , notes = Loading --Success [ todoBuyingList ]
       }
-    , Cmd.none
-      --, getAllNotes ServerReturnedNoteList
+    , getAllNotesCmd ServerReturnedNoteList
     )
 
 
@@ -223,8 +221,6 @@ viewNoteContent note =
             noContent
 
 
-{-| TODO: factorize with NoteEditor.viewItems.
--}
 viewItems : List Note.Item -> Html Msg
 viewItems items =
     items

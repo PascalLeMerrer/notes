@@ -610,7 +610,7 @@ viewTitlePlaceholder =
         [ class "editor-title-placeholder"
         , onClick UserClickedNoteTitle
         ]
-        [ text "Titre" ]
+        [ text "Click or tap to edit the title" ]
 
 
 viewContent : Model -> Html Msg
@@ -704,7 +704,7 @@ viewItemTextPlaceholder item =
         [ class "item-text-placeholder"
         , onClick (UserClickedItemText item)
         ]
-        [ text "Click to edit"
+        [ text "Click or tap to edit"
         , DeleteButton.view (UserClickedItemDeleteButton item)
         ]
 
@@ -801,7 +801,7 @@ viewTextPlaceholder =
         [ class "editor-text-placeholder"
         , onClick UserClickedNoteContent
         ]
-        [ text "Texte" ]
+        [ text "Click or tap to edit the note conten" ]
 
 
 
