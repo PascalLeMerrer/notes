@@ -304,10 +304,17 @@ update msg model =
             ( { model | isEditingTitle = True }, focusOn titleEditorId NoOp )
 
         UserClickedTextButton ->
-            convert model toText
+            ( convert model toText
+            , Cmd.none
+            )
 
         UserClickedTodoListButton ->
-            convert model toTodoList
+            let
+                updatedModel =
+                    convert model toTodoList
+            in
+            updatedModel
+                |> addItemToEmptyTodoList
 
         UserSelectedNote note ->
             ( model |> withNote (Success note)
@@ -359,26 +366,72 @@ updateItemInContent model item =
             model
 
 
-convert : Model -> (Note -> Note) -> ( Model, Cmd Msg )
+convert : Model -> (Note -> Note) -> Model
 convert model converter =
     case model.note of
         Success note ->
             let
                 convertedNote =
                     converter note
+
+                updatedModel =
+                    model |> withNote (Success convertedNote)
             in
-            ( model |> withNote (Success convertedNote), Cmd.none )
+            updatedModel
 
         _ ->
-            ( model, Cmd.none )
+            model
 
 
+{-| When adding an item to an empty list,
+it automaticcaly is bieng edited
+-}
+addItemToEmptyTodoList : Model -> ( Model, Cmd Msg )
+addItemToEmptyTodoList model =
+    let
+        newItem =
+            { checked = False
+            , order = 1
+            , text = ""
+            }
+    in
+    ( model
+        |> withContent (TodoList [ newItem ])
+        |> withEditedItem (Just newItem)
+    , focusOn (itemId newItem) NoOp
+    )
+
+
+{-| TODO: split into smaller functions
+-}
 addItem : Model -> Model
 addItem model =
     case model.editedItem of
         Nothing ->
-            -- TODO: this is probably the case of creating a first item to an empty note
-            model
+            -- this is the case of creating a first item in an empty note
+            --let
+            --    updatedContent =
+            --        case model.content of
+            --            TodoList items ->
+            --                let
+            --                    firstItemOrder =
+            --                        List.head items
+            --                            |> Maybe.map .order
+            --                            |> Maybe.withDefault 0
+            --
+            --                    newItem =
+            --                        { checked = False
+            --                        , order = firstItemOrder + 1
+            --                        , text = ""
+            --                        }
+            --                in
+            --                TodoList (newItem :: items)
+            --
+            --            _ ->
+            --                model.content
+            --in
+            --model |> withContent updatedContent
+            Debug.todo "probably will never occurs. Should return model"
 
         Just editedItem ->
             let
@@ -660,12 +713,18 @@ viewEditedItemText : Item -> Html Msg
 viewEditedItemText item =
     input
         [ class "item-input"
+        , id (itemId item)
         , type_ "text"
         , onKeyDown UserPressedKey
         , onInput UserChangedItemText
         , value item.text
         ]
         []
+
+
+itemId : Item -> String
+itemId item =
+    "item-input-" ++ String.fromInt item.order
 
 
 onKeyDown : (Key -> Msg) -> Attribute Msg
