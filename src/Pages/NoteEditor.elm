@@ -679,7 +679,24 @@ viewItemText model item =
 
 viewReadonlyItemText : Item -> Html Msg
 viewReadonlyItemText item =
-    span [ onClick (UserClickedItemText item) ] [ text item.text ]
+    if item.text == "" then
+        viewItemTextPlaceholder item
+
+    else
+        div
+            [ class "item-text-readonly"
+            , onClick (UserClickedItemText item)
+            ]
+            [ text item.text ]
+
+
+viewItemTextPlaceholder : Item -> Html Msg
+viewItemTextPlaceholder item =
+    div
+        [ class "item-text-placeholder"
+        , onClick (UserClickedItemText item)
+        ]
+        [ text "Click to edit" ]
 
 
 viewEditedItemText : Item -> Html Msg
