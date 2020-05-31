@@ -63,24 +63,10 @@ allNotes model =
 
 init : ( Model, Cmd Msg )
 init =
-    initWithDefaultData
-
-
-initWithProductionData : ( Model, Cmd Msg )
-initWithProductionData =
     ( { messageToast = MessageToast.init MessageToastChanged
       , notes = Loading
       }
     , getAllNotesCmd ServerReturnedNoteList
-    )
-
-
-initWithDefaultData : ( Model, Cmd Msg )
-initWithDefaultData =
-    ( { messageToast = MessageToast.init MessageToastChanged
-      , notes = Success [ todoBuyingList ]
-      }
-    , Cmd.none
     )
 
 
