@@ -3,7 +3,6 @@ module Pages.NoteList exposing (..)
 import Components.Retry as Retry
 import Components.Spinner as Spinner
 import Data.Note as Note exposing (Content(..), Note)
-import Fixtures exposing (todoBuyingList)
 import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text)
 import Html.Styled.Attributes exposing (checked, class, type_)
 import Html.Styled.Events exposing (onClick)
