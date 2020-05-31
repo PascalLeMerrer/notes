@@ -319,8 +319,17 @@ update msg model =
                 updatedModel =
                     convert model toTodoList
             in
-            updatedModel
-                |> addItemToEmptyTodoList
+            case updatedModel.content of
+                TodoList items ->
+                    if List.isEmpty items then
+                        updatedModel
+                            |> addItemToEmptyTodoList
+
+                    else
+                        ( updatedModel, Cmd.none )
+
+                _ ->
+                    ( updatedModel, Cmd.none )
 
         UserSelectedNote note ->
             ( model |> withNote (Success note)
