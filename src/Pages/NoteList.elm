@@ -3,6 +3,7 @@ module Pages.NoteList exposing (..)
 import Components.Retry as Retry
 import Components.Spinner as Spinner
 import Data.Note as Note exposing (Content(..), Note)
+import Fixtures exposing (todoBuyingList)
 import Html.Styled exposing (Html, div, fromUnstyled, h2, input, text)
 import Html.Styled.Attributes exposing (checked, class, type_)
 import Html.Styled.Events exposing (onClick)
@@ -62,10 +63,24 @@ allNotes model =
 
 init : ( Model, Cmd Msg )
 init =
+    initWithDefaultData
+
+
+initWithProductionData : ( Model, Cmd Msg )
+initWithProductionData =
     ( { messageToast = MessageToast.init MessageToastChanged
-      , notes = Loading --Success [ todoBuyingList ]
+      , notes = Loading
       }
     , getAllNotesCmd ServerReturnedNoteList
+    )
+
+
+initWithDefaultData : ( Model, Cmd Msg )
+initWithDefaultData =
+    ( { messageToast = MessageToast.init MessageToastChanged
+      , notes = Success [ todoBuyingList ]
+      }
+    , Cmd.none
     )
 
 
