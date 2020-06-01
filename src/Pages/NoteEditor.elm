@@ -10,7 +10,7 @@ import Components.TextIcon as TextIcon
 import Components.TodoListIcon as TodoListButton
 import Data.Note as Note exposing (Content(..), Item, Note, toText, toTodoList)
 import Html.Attributes
-import Html.Events.Extra.Drag as Drag
+import Html.Events.Extra.Drag as Drag exposing (Event)
 import Html.Styled exposing (Attribute, Html, button, div, form, fromUnstyled, h2, input, p, span, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, id, type_, value)
 import Html.Styled.Events exposing (keyCode, on, onClick, onInput, onSubmit)
@@ -24,9 +24,11 @@ import Utils.Http exposing (errorToString)
 
 
 type Msg
-    = DragStart Int Drag.EffectAllowed Value
-    | DragEnd
+    = DragEnd
+    | DraggedItemEnteredDropZone Item Event -- the hovered item + the HTML drag event
+    | DraggedItemLeftDropZone Item Event
     | DragOver Drag.DropEffect Value
+    | DragStart Int Drag.EffectAllowed Value
     | Drop Item
     | MessageToastChanged (MessageToast Msg)
     | NoOp
@@ -62,7 +64,8 @@ type Key
 
 
 type alias Model =
-    { content : Content
+    { activeDropZone : Maybe Item -- The item above which the dragged item is ready to be dropped
+    , content : Content
     , dragAndDropStatus : DragAndDropStatus
     , editedItem : Maybe Item
     , id : String
@@ -79,6 +82,11 @@ type alias Model =
 type DragAndDropStatus
     = NoDnD
     | Dragging Int
+
+
+withActiveDropZone : Maybe Item -> Model -> Model
+withActiveDropZone activeDropZone model =
+    { model | activeDropZone = activeDropZone }
 
 
 withContent : Content -> Model -> Model
@@ -157,7 +165,8 @@ withMessageToast messageToast model =
 
 init : Model
 init =
-    { content = Empty
+    { activeDropZone = Nothing
+    , content = Empty
     , dragAndDropStatus = NoDnD
     , editedItem = Nothing
     , id = ""
@@ -174,16 +183,26 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        DragEnd ->
+            ( { model | dragAndDropStatus = NoDnD }, Cmd.none )
+
+        DraggedItemEnteredDropZone item _ ->
+            ( model |> withActiveDropZone (Just item), Cmd.none )
+
+        DraggedItemLeftDropZone _ _ ->
+            ( model |> withActiveDropZone Nothing, Cmd.none )
+
+        DragOver dropEffect value ->
+            let
+                _ =
+                    Debug.log "" value
+            in
+            ( model, DragPorts.dragover (Drag.overPortData dropEffect value) )
+
         DragStart itemOrder effectAllowed item ->
             ( { model | dragAndDropStatus = Dragging itemOrder }
             , DragPorts.dragstart (Drag.startPortData effectAllowed item)
             )
-
-        DragEnd ->
-            ( { model | dragAndDropStatus = NoDnD }, Cmd.none )
-
-        DragOver dropEffect value ->
-            ( model, DragPorts.dragover (Drag.overPortData dropEffect value) )
 
         Drop referenceItem ->
             let
@@ -207,6 +226,7 @@ update msg model =
                 Just item ->
                     ( model
                         |> moveItemBefore item referenceItem
+                        |> withActiveDropZone Nothing
                     , Cmd.none
                     )
 
@@ -523,7 +543,6 @@ moveItemBefore itemToMove referenceItem model =
         TodoList items ->
             let
                 updatedItems =
-                    --if referenceItem.order > itemToMove.order then
                     List.map
                         (\item ->
                             { item
@@ -539,9 +558,6 @@ moveItemBefore itemToMove referenceItem model =
                             }
                         )
                         items
-
-                --else
-                --    items
             in
             model |> withContent (TodoList updatedItems)
 
@@ -807,16 +823,37 @@ dragAttributes item =
 viewItemdDropZone : Model -> Item -> Html Msg
 viewItemdDropZone model item =
     let
-        className =
+        activityClassName =
             case model.dragAndDropStatus of
                 NoDnD ->
                     "dropZone-inactive"
 
                 Dragging _ ->
                     "dropZone-active"
+
+        draggedItemOrder =
+            case model.dragAndDropStatus of
+                NoDnD ->
+                    -1
+
+                Dragging itemOrder ->
+                    itemOrder
+
+        hoveredClassName =
+            case model.activeDropZone of
+                Just hoveredItem ->
+                    if hoveredItem.order == item.order && draggedItemOrder /= item.order then
+                        "dropzone-hover"
+
+                    else
+                        ""
+
+                Nothing ->
+                    ""
     in
     div
-        (class className
+        (class activityClassName
+            :: class hoveredClassName
             :: (Drag.onDropTarget (dropTargetConfig item)
                     |> List.map Html.Styled.Attributes.fromUnstyled
                )
@@ -980,8 +1017,8 @@ dropTargetConfig item =
     { dropEffect = Drag.MoveOnDrop
     , onOver = DragOver
     , onDrop = always (Drop item)
-    , onEnter = Nothing
-    , onLeave = Nothing
+    , onEnter = Just (DraggedItemEnteredDropZone item)
+    , onLeave = Just (DraggedItemLeftDropZone item)
     }
 
 

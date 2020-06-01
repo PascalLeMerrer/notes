@@ -1,5 +1,6 @@
 module Components.Stylesheet exposing (all)
 
+import Color exposing (charcoal, darkCharcoal)
 import Components.Colors exposing (averageGreen, averageGrey, darkerGrey, lightGreen, lightGrey, white)
 import Css exposing (Style, alignItems, alignSelf, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, dashed, display, displayFlex, em, fixed, flex, flexDirection, flexGrow, flexStart, fontFamilies, fontSize, fontStyle, fontWeight, height, hover, italic, justifyContent, lineThrough, margin, marginBottom, marginLeft, marginRight, marginTop, maxWidth, none, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, rem, right, row, solid, spaceBetween, stretch, textDecoration, transform, translate2, width)
 import Css.Global exposing (Snippet, class, global)
@@ -59,11 +60,10 @@ classes =
         ]
     , class "dropZone-active"
         [ height (px 5)
-        , hover
-            [ height (px 40)
-            , border3 (px 1) dashed lightGrey
-            ]
         , width (pct 100)
+        ]
+    , class "dropzone-hover"
+        [ backgroundColor darkerGrey
         ]
     , class "dropZone-inactive"
         [ height (px 5)
