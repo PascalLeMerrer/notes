@@ -1,7 +1,7 @@
 module Components.Stylesheet exposing (all)
 
 import Components.Colors exposing (averageGreen, averageGrey, darkerGrey, lightGreen, lightGrey, white)
-import Css exposing (Style, alignItems, alignSelf, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, display, displayFlex, em, fixed, flex, flexDirection, flexGrow, flexStart, fontFamilies, fontSize, fontStyle, fontWeight, height, italic, justifyContent, lineThrough, margin, marginBottom, marginLeft, marginRight, marginTop, maxWidth, none, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, rem, right, row, solid, spaceBetween, stretch, textDecoration, transform, translate2)
+import Css exposing (Style, alignItems, alignSelf, auto, backgroundColor, bold, border3, borderBottom3, borderColor, borderRadius, bottom, center, color, column, cursor, dashed, display, displayFlex, em, fixed, flex, flexDirection, flexGrow, flexStart, fontFamilies, fontSize, fontStyle, fontWeight, height, hover, italic, justifyContent, lineThrough, margin, marginBottom, marginLeft, marginRight, marginTop, maxWidth, none, num, padding, paddingBottom, paddingLeft, paddingRight, paddingTop, pct, pointer, position, px, rem, right, row, solid, spaceBetween, stretch, textDecoration, transform, translate2, width)
 import Css.Global exposing (Snippet, class, global)
 import Css.Media exposing (only, screen, withMedia)
 import Html.Styled
@@ -56,6 +56,18 @@ classes =
         ]
     , class "draghandle"
         [ marginLeft (px 20)
+        ]
+    , class "dropZone-active"
+        [ height (px 5)
+        , hover
+            [ height (px 40)
+            , border3 (px 1) dashed lightGrey
+            ]
+        , width (pct 100)
+        ]
+    , class "dropZone-inactive"
+        [ height (px 5)
+        , width (pct 100)
         ]
     , class "editor"
         [ alignItems stretch
@@ -156,6 +168,10 @@ classes =
         , paddingBottom (px 5)
         , paddingLeft (px 10)
         , paddingRight (px 10)
+        ]
+    , class "item"
+        [ displayFlex
+        , flexDirection column
         ]
     , class "item-checkbox"
         [ marginLeft (px 20)

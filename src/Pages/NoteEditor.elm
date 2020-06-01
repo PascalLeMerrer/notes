@@ -3,16 +3,18 @@ module Pages.NoteEditor exposing (Model, Msg(..), init, subscriptions, update, v
 import Components.BackButton as BackButton
 import Components.DeleteButton as DeleteButton
 import Components.DragHandle as DragHandle
+import Components.DragPorts as DragPorts
 import Components.Retry as Retry
 import Components.Spinner as Spinner
 import Components.TextIcon as TextIcon
 import Components.TodoListIcon as TodoListButton
 import Data.Note as Note exposing (Content(..), Item, Note, toText, toTodoList)
 import Html.Attributes
+import Html.Events.Extra.Drag as Drag
 import Html.Styled exposing (Attribute, Html, button, div, form, fromUnstyled, h2, input, p, span, text, textarea)
 import Html.Styled.Attributes exposing (checked, class, id, type_, value)
 import Html.Styled.Events exposing (keyCode, on, onClick, onInput, onSubmit)
-import Json.Decode
+import Json.Decode as Decode exposing (Value)
 import List.Extra
 import MessageToast exposing (MessageToast)
 import RemoteData exposing (RemoteData(..), WebData)
@@ -22,7 +24,11 @@ import Utils.Http exposing (errorToString)
 
 
 type Msg
-    = MessageToastChanged (MessageToast Msg)
+    = DragStart Int Drag.EffectAllowed Value
+    | DragEnd
+    | DragOver Drag.DropEffect Value
+    | Drop Item
+    | MessageToastChanged (MessageToast Msg)
     | NoOp
     | ServerDeletedNote String (WebData String)
     | ServerSavedNewNote (WebData Note)
@@ -57,6 +63,7 @@ type Key
 
 type alias Model =
     { content : Content
+    , dragAndDropStatus : DragAndDropStatus
     , editedItem : Maybe Item
     , id : String
     , isEditingContent : Bool
@@ -67,6 +74,11 @@ type alias Model =
     , order : Int
     , title : String
     }
+
+
+type DragAndDropStatus
+    = NoDnD
+    | Dragging Int
 
 
 withContent : Content -> Model -> Model
@@ -146,6 +158,7 @@ withMessageToast messageToast model =
 init : Model
 init =
     { content = Empty
+    , dragAndDropStatus = NoDnD
     , editedItem = Nothing
     , id = ""
     , isEditingContent = False
@@ -161,6 +174,47 @@ init =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        DragStart itemOrder effectAllowed item ->
+            ( { model | dragAndDropStatus = Dragging itemOrder }
+            , DragPorts.dragstart (Drag.startPortData effectAllowed item)
+            )
+
+        DragEnd ->
+            ( { model | dragAndDropStatus = NoDnD }, Cmd.none )
+
+        DragOver dropEffect value ->
+            ( model, DragPorts.dragover (Drag.overPortData dropEffect value) )
+
+        Drop referenceItem ->
+            let
+                draggedItemOrder =
+                    Debug.log "draggedItemOrder" <|
+                        case model.dragAndDropStatus of
+                            Dragging order ->
+                                order
+
+                            _ ->
+                                0
+
+                itemToMove =
+                    itemAt draggedItemOrder model
+                        |> Debug.log "itemToMove"
+
+                _ =
+                    Debug.log "referenceItem" referenceItem
+            in
+            case itemToMove of
+                Just item ->
+                    ( model
+                        |> moveItemBefore item referenceItem
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model
+                    , Cmd.none
+                    )
+
         MessageToastChanged updatedMessageToast ->
             ( model
                 |> withMessageToast updatedMessageToast
@@ -430,29 +484,69 @@ addItem model =
                     , text = ""
                     }
 
-                updatedItems =
-                    case model.content of
-                        TodoList items ->
-                            items
-                                |> List.map
-                                    (\it ->
-                                        if it.order >= editedItem.order then
-                                            { it | order = it.order + 1 }
-
-                                        else
-                                            it
-                                    )
-                                |> (::) newItem
-
-                        _ ->
-                            -- impossible case; would mean there is an editedItem when the items list is empty
-                            [ newItem ]
+                updatedModel =
+                    insertItemBefore newItem editedItem model
             in
-            ( model
-                |> withContent (TodoList updatedItems)
+            ( updatedModel
                 |> withEditedItem (Just newItem)
             , focusOn (itemId newItem) NoOp
             )
+
+
+insertItemBefore : Item -> Item -> Model -> Model
+insertItemBefore itemToInsert referenceItem model =
+    let
+        updatedItems =
+            case model.content of
+                TodoList items ->
+                    items
+                        |> List.map
+                            (\it ->
+                                if it.order >= referenceItem.order then
+                                    { it | order = it.order + 1 }
+
+                                else
+                                    it
+                            )
+                        |> (::) itemToInsert
+
+                _ ->
+                    -- impossible case; would mean there is an editedItem when the items list is empty
+                    [ itemToInsert ]
+    in
+    model |> withContent (TodoList updatedItems)
+
+
+moveItemBefore : Item -> Item -> Model -> Model
+moveItemBefore itemToMove referenceItem model =
+    case model.content of
+        TodoList items ->
+            let
+                updatedItems =
+                    --if referenceItem.order > itemToMove.order then
+                    List.map
+                        (\item ->
+                            { item
+                                | order =
+                                    if item.order == itemToMove.order then
+                                        referenceItem.order + 1
+
+                                    else if item.order > referenceItem.order then
+                                        item.order + 1
+
+                                    else
+                                        item.order
+                            }
+                        )
+                        items
+
+                --else
+                --    items
+            in
+            model |> withContent (TodoList updatedItems)
+
+        _ ->
+            model
 
 
 removeItem : Item -> Model -> Model
@@ -503,6 +597,18 @@ removeEditedItemIfEmpty model =
 
         Nothing ->
             model
+
+
+itemAt : Int -> Model -> Maybe Item
+itemAt order model =
+    case model.content of
+        TodoList items ->
+            items
+                |> List.filter (\it -> it.order == order)
+                |> List.head
+
+        _ ->
+            Nothing
 
 
 {-| displays a note in full screen
@@ -676,17 +782,46 @@ viewItem model item =
             else
                 "editor-item"
     in
-    div [ class className ]
-        [ viewIf (not item.checked) DragHandle.view
-        , input
-            [ type_ "checkbox"
-            , checked item.checked
-            , class "item-checkbox"
-            , onClick (UserToggledItem item)
+    div [ class "item" ]
+        [ viewItemdDropZone model item
+        , div
+            (class className :: dragAttributes item)
+            [ viewIf (not item.checked) DragHandle.view
+            , input
+                [ type_ "checkbox"
+                , checked item.checked
+                , class "item-checkbox"
+                , onClick (UserToggledItem item)
+                ]
+                []
+            , viewItemText model item
             ]
-            []
-        , viewItemText model item
         ]
+
+
+dragAttributes : Item -> List (Attribute Msg)
+dragAttributes item =
+    Drag.onSourceDrag (draggedSourceConfig item.order) |> List.map Html.Styled.Attributes.fromUnstyled
+
+
+viewItemdDropZone : Model -> Item -> Html Msg
+viewItemdDropZone model item =
+    let
+        className =
+            case model.dragAndDropStatus of
+                NoDnD ->
+                    "dropZone-inactive"
+
+                Dragging _ ->
+                    "dropZone-active"
+    in
+    div
+        (class className
+            :: (Drag.onDropTarget (dropTargetConfig item)
+                    |> List.map Html.Styled.Attributes.fromUnstyled
+               )
+        )
+        []
 
 
 viewItemText : Model -> Item -> Html Msg
@@ -753,7 +888,7 @@ itemId item =
 onKeyDown : (Key -> Msg) -> Attribute Msg
 onKeyDown msgConstructor =
     on "keydown"
-        (Json.Decode.map
+        (Decode.map
             (\code ->
                 case code of
                     8 ->
@@ -821,7 +956,7 @@ viewTextPlaceholder =
         [ class "editor-text-placeholder"
         , onClick UserClickedNoteContent
         ]
-        [ text "Click or tap to edit the note conten" ]
+        [ text "Click or tap to edit the note content" ]
 
 
 
@@ -834,6 +969,29 @@ viewDeleteButton =
         [ class "deleteButton"
         ]
         [ DeleteButton.view UserClickedNoteDeleteButton ]
+
+
+
+--
+
+
+dropTargetConfig : Item -> Drag.DropTargetConfig Msg
+dropTargetConfig item =
+    { dropEffect = Drag.MoveOnDrop
+    , onOver = DragOver
+    , onDrop = always (Drop item)
+    , onEnter = Nothing
+    , onLeave = Nothing
+    }
+
+
+draggedSourceConfig : Int -> Drag.DraggedSourceConfig Msg
+draggedSourceConfig order =
+    { effectAllowed = { move = True, copy = False, link = False }
+    , onStart = DragStart order
+    , onEnd = always DragEnd
+    , onDrag = Nothing
+    }
 
 
 

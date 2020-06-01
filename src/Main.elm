@@ -7,9 +7,14 @@ import Data.Note as Note exposing (Note)
 import Html
 import Html.Styled exposing (Html, div, h1, text, toUnstyled)
 import Html.Styled.Attributes exposing (class)
+import Json.Decode exposing (Value)
 import Pages.NoteEditor as NoteEditor exposing (Msg(..))
 import Pages.NoteList as NoteList exposing (Msg(..), allNotes)
 import RemoteData exposing (RemoteData(..))
+
+
+
+-- MAIN --
 
 
 main =
@@ -19,6 +24,10 @@ main =
         , view = view
         , subscriptions = subscriptions
         }
+
+
+
+-- MESSAGES --
 
 
 type Msg
